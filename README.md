@@ -79,6 +79,7 @@ and add a rule like this
 
 ### Rule to add in "User JavaScript and CSS"
 
+```javascript
  $(document).ready(function(){
   var url = window.location.href;
   if(url.startsWith("https://gemini.google.com/app")){
