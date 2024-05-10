@@ -82,7 +82,7 @@ and add a rule like this
 ```javascript
  $(document).ready(function(){
    var srcurl = "https://127.0.0.1:13443/gemini/gemini_to_youtube.js";
-          loadScript2(srcurl, function(){console.log("Loaded (web) "+srcurl)});
+   loadScript2(srcurl, function(){console.log("Loaded (web) "+srcurl)});
  });
  
  
@@ -93,10 +93,10 @@ and add a rule like this
          ajax.send(url, isJsonResponse, function(rep){
              console.log("loaded web ... "+url);
              //eval(rep);
-             
-    var scr = document.createElement("script");
-    scr.src = url;
-    document.body.appendChild(scr);
+                      
+             var scr = document.createElement("script");
+             scr.src = url;
+             document.body.appendChild(scr);
              
              onloaded(rep);
          });
