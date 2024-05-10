@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf8'?>
+<nuitka-compilation-report nuitka_version="1.9.5" nuitka_commercial_version="not installed" completion="error exit message (1)" exit_message="">
+  <module name="__main__" kind="PythonMainModule" usage="root_module" reason="Root module" source_path="${cwd}\assistant.py">
+    <optimization-time pass="1" time="0.26" />
+    <optimization-time pass="2" time="0.03" />
+    <module_usages>
+      <module_usage name="site" finding="excluded" line="1" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="pywin32_bootstrap" finding="absolute" line="1" />
+      <module_usage name="threading" finding="excluded" line="2" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="argostranslate.package" finding="absolute" line="3" />
+      <module_usage name="argostranslate.translate" finding="absolute" line="4" />
+      <module_usage name="includes.mymaster" finding="absolute" line="6" />
+      <module_usage name="pathlib" finding="excluded" line="8" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+    </module_usages>
+  </module>
+  <performance>
+    <memory_usage name="after_launch" value="44904448" />
+    <memory_usage name="before_c_code_generation" value="46632960" />
+    <memory_usage name="before_running_scons" value="48209920" />
+  </performance>
+  <data_composer blob_size="3634" total="275">
+    <module_data filename="__bytecode.const" input_size="0" blob_name=".bytecode" blob_size="3" />
+    <module_data filename="__constants.const" input_size="2041" blob_name="" blob_size="856" />
+    <module_data filename="module.__main__.const" input_size="4768" blob_name="__main__" blob_size="2735" />
+  </data_composer>
+  <command_line>
+    <option value="assistant.py" />
+  </command_line>
+  <plugins>
+    <plugin name="anti-bloat" user_enabled="no" />
+    <plugin name="eventlet" user_enabled="no" />
+    <plugin name="gi" user_enabled="no" />
+    <plugin name="implicit-imports" user_enabled="no" />
+    <plugin name="multiprocessing" user_enabled="no" />
+    <plugin name="options-nanny" user_enabled="no" />
+    <plugin name="pkg-resources" user_enabled="no" />
+    <plugin name="transformers" user_enabled="no" />
+  </plugins>
+  <distributions />
+  <python python_exe="${sys.prefix}\python.exe" python_flavor="CPython Official" python_version="3.11.5" os_name="Windows" arch_name="x86_64">
+    <search_path>
+      <path value="${cwd}" />
+      <path value="${sys.prefix}\DLLs" />
+      <path value="${sys.prefix}\Lib" />
+      <path value="${sys.prefix}" />
+      <path value="${sys.prefix}\Lib\site-packages" />
+      <path value="${sys.prefix}\Lib\site-packages\win32" />
+      <path value="${sys.prefix}\Lib\site-packages\win32\lib" />
+      <path value="${sys.prefix}\Lib\site-packages\Pythonwin" />
+    </search_path>
+  </python>
+  <output run_filename="${cwd}\assistant.cmd" />
+</nuitka-compilation-report>

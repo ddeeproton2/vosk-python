@@ -1,0 +1,16 @@
+{
+  "name": "restartonmodify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "yargs": "^17.7.2"
+  }
+}

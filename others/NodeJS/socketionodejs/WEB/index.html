@@ -1,0 +1,200 @@
+<!-- Fichier index.html avec la gestion de plusieurs canaux -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <script src="jquery-3.6.4.min.js"></script>
+    <style>
+        body {background:black;color:white;}
+    </style>
+</head>
+<body>
+    <div id="users"></div>
+    <div id="console"></div>
+    <div id="command">
+        <input type="text">
+        <input type="button" value="->">
+    </div>
+    <div id="gemini_question_from_youtube">
+        <input type="text">
+        <input type="button" value="->">
+    </div>
+    <script src="socket.io.js"></script>
+    <script type="text/javascript">
+        //const socket = io();
+        var url = window.location.protocol+'//'+window.location.hostname+':'+window.location.port;
+        const socket = io(url); // Remplacez l'URL par l'adresse de votre serveur
+        console.log(url);
+        socket.on('question', function(from, to, msg){
+            $('#console').append($('<div>').text(from+" > ["+to+'] '+msg));
+        });
+
+
+
+        class TProcessio{
+ 
+            constructor(){
+                this.utilisateurs = [];
+                this.myuserid = 0;
+            }
+            displayUser(i){
+                $('#users').append($('<div>').text(this.utilisateurs[i].statut+" "+this.utilisateurs[i].type+" "+this.utilisateurs[i].id));
+            }
+            process(from, to, action, varname, value){
+                if(from === "server" && action === "set" && varname === "clientid"){
+                    this.myuserid = value;
+                    $('#users').html("");
+                    for(var i in this.utilisateurs){
+                        if(this.myuserid === this.utilisateurs[i].id){
+                            this.utilisateurs[i].type = 'me';
+                        }
+                        this.displayUser(i);
+                    }
+                }
+                if(action === "set" && varname === "clienttype"){
+                    $('#users').html("");
+                    for(var i in this.utilisateurs){
+                        if(from === this.utilisateurs[i].id){
+                            if(this.myuserid !== this.utilisateurs[i].id){
+                                this.utilisateurs[i].type = value;
+                            }
+                            this.utilisateurs[i].statut = 'connected';
+                        }
+                        this.displayUser(i);
+                    }
+                }
+                if(action === "set" && varname === "clientstatut"){
+                    $('#users').html("");
+                    for(var i in this.utilisateurs){
+                        if(from === this.utilisateurs[i].id){
+                            this.utilisateurs[i].statut = value;
+                        }
+                        this.displayUser(i);
+                    }
+                }
+                if(from === "server" && action === "set" && varname === "users"){
+                    var users = value;
+                    console.log(users);
+                    $('#users').html("");
+                    for(var i in users){
+                        var isFound = false;
+                        for(var j in this.utilisateurs){
+                            if(this.utilisateurs[j].id === users[i]){
+                                isFound = true;
+                                break;
+                            }
+                        }
+                        if(!isFound){
+                            this.utilisateurs.push({
+                                statut:'newuser',
+                                type: 'unknown',
+                                id: users[i]
+                            });
+                        }
+                    }
+                    for(var i in this.utilisateurs){
+                        if(users.indexOf(this.utilisateurs[i].id) === -1){
+                            this.utilisateurs.splice(i, 1); 
+                        }
+                    }
+                    for(var i in this.utilisateurs){
+                        this.displayUser(i);
+                    }
+                    setTimeout(function(){
+                        //socket.emit('iam', this.myuserid, "Admin");
+                        socket.emit('emitall', "", "", "set", "clienttype", "Admin"); from, action, varname, value
+                        //socket.emit('emitall', "", "", "set", "clientstatut", "working"); from, action, varname, value
+                        /*
+                        for(var i in utilisateurs){
+                            socket.emit('emitto', "", utilisateurs[i].id, "set", "clienttype", "Admin"); 
+                        }
+                        */
+                    },500);
+                }
+
+            }
+
+        }
+
+
+        var p = new TProcessio();
+
+        socket.on('emitto', (from, to, action, varname, value) => {
+            p.process(from, to, action, varname, value);
+        });
+        socket.on('emitall', (from, to, action, varname, value) => {
+            p.process(from, to, action, varname, value);
+        });
+
+        $(document).ready(function(){
+            $("#command input[type=button]").click(function(){
+                var msg = $("#command input[type=text]").val();
+                socket.emit('question', "web", "gemini", msg);
+                console.log(msg);
+            });
+
+            $("#gemini_question_from_youtube input[type=button]").click(function(){
+                var msg = $("#gemini_question_from_youtube input[type=text]").val();
+                console.log(msg);
+                for(var i in p.utilisateurs){
+                    if(p.utilisateurs[i].type === "Gemini" && p.utilisateurs[i].statut === "connected"){
+                        socket.emit('emitto', "", p.utilisateurs[i].id, "youtube_to_gemini", "question", msg); 
+                        console.log("Envoyé")
+                        return;
+                    }
+                }
+                console.log("Pas envoyé, aucun Gemini dispo");
+            });
+            
+        });
+
+
+    </script>
+    <!--
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="m" autocomplete="off" />
+        <input id="channels" placeholder="Channels (comma-separated)" autocomplete="off" value="speakvoice" />
+        <button onclick="joinChannels()">Join Channels</button>
+        <button>Send</button>
+    </form>
+
+    <script src="socket.io.js"></script>
+    <script>
+        //const socket = io();
+        const socket = io(window.location.protocol+'//'+window.location.hostname+':'+window.location.port); // Remplacez l'URL par l'adresse de votre serveur
+
+        $('#form').submit(function(event) {
+            event.preventDefault();
+            const input = $('#m');
+            const channels = $('#channels').val().split(',');
+
+            if (input.val()) {
+                channels.forEach(channel => {
+                    socket.emit('on_youtube_message', input.val(), channel.trim());
+                });
+
+                input.val('');
+            }
+        });
+
+        socket.on('on_youtube_message', function(msg, channel){
+            $('#messages').append($('<li>').text(channel+" > "+msg));
+        });
+
+        function joinChannels() {
+            const channels = $('#channels').val().split(',');
+            channels.forEach(channel => {
+                socket.emit('join', channel.trim());
+            });
+        }
+
+        
+        socket.emit('join', "speakvoice");
+
+    </script>
+    -->
+</body>
+</html>

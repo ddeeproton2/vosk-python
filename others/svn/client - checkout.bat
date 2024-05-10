@@ -1,0 +1,1 @@
+svn checkout svn://192.168.1.57:44444/assist --username dd --password dd

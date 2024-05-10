@@ -1,2 +1,68 @@
 # vosk-python
- Offline speech recognition in Python
+ Offline speech recognition in Python for Windows
+
+This project is under dev, but can already used
+
+This is only libraries aviable, and you make your code.
+
+You can code this eg. : 
+
+- Link your voice with HTTP(s) in both directions
+
+- Translate your voice
+
+- Text to Speech
+
+- OCR Image recognition (search a part of your screen, from an image)
+
+- Click mouse on Desktop. Automate your Keyboard.
+
+- Communicate with TOR network
+
+You can recompile it to add your library
+
+_____________________
+
+To compile :
+
+-Download a model https://alphacephei.com/vosk/models into model folder, "Extract here..." with winrar
+
+-install python 3.11.5 https://www.python.org/downloads/release/python-3115/
+
+-Open "assistant.bat", and set python path, and set the model path, (speaker, microphone 0 default), start to test your voice.
+
+To compile start "assistant compile.bat"
+
+_____________________
+
+if Error :
+
+if everything is ok, if all libraries will install it self. But you can edit "includes\mymaster.py" to fix libraries.
+
+_____________________
+
+To use:
+
+Open your command prompt goto build and start "assistant.exe" to see the help commands.
+
+it need, the folder roms, that will be "Python script" 
+
+When you speak, it will start to speak into the script specified in you start command. 
+
+Then you can give "Voice orders", to this script. And you can script commands to go to others scripts.
+
+_____________________
+
+Optional
+
+A web server is aviable, to execute Python Scripts
+
+The webserver starts in "build\roms\init.py"
+
+remoteeval2 = RemoteEval(host = "0.0.0.0:14080", www_localdir= files.getParentdir(execute.currentDir) + "/webserver/", isEvalFile = True, useSSL = False, verbose=False)
+
+remoteeval = RemoteEval(host = "0.0.0.0:14443", www_localdir= files.getParentdir(execute.currentDir) + "/webserver/", isEvalFile = True, useSSL = True, SSLCERT = execute.currentDir+"/SSL/cert.pem", SSLKEY = execute.currentDir+"/SSL/key.pem", verbose=False)
+
+See eg. in "build\webserver\spksay.py" to make your computer to "text to speak" (TTS) from this server
+
+You can also use this server to use all libraries (mouse control, ...) if you code it.

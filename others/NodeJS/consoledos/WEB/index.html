@@ -1,0 +1,108 @@
+<!-- Fichier index.html avec la gestion de plusieurs canaux -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <script src="jquery-3.6.4.min.js"></script>
+    <style>
+        body {background:black;color:white;}
+    </style>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="m" autocomplete="off" />
+        <input id="channels" placeholder="Channels (comma-separated)" autocomplete="off" value="speakvoice" />
+        <button onclick="joinChannels()">Join Channels</button>
+        <button>Send</button>
+    </form>
+
+    <h1>Sortie DOS</h1>
+    <pre id="output"></pre>
+    <input type="text" id="command" placeholder="Entrez une commande">
+    <button id="send">Envoyer</button>
+
+
+
+    <script src="socket.io.js"></script>
+    <script>
+        /*
+        //const socket = io();
+        const socket = io(window.location.protocol+'//'+window.location.hostname+':'+window.location.port); // Remplacez l'URL par l'adresse de votre serveur
+
+        $('#form').submit(function(event) {
+            event.preventDefault();
+            const input = $('#m');
+            const channels = $('#channels').val().split(',');
+
+            if (input.val()) {
+                channels.forEach(channel => {
+                    socket.emit('on_youtube_message', input.val(), channel.trim());
+                });
+
+                input.val('');
+            }
+        });
+
+        socket.on('on_youtube_message', function(msg, channel){
+            const messages = $('#messages');
+            messages.append($('<li>').text(channel+" > "+msg));
+        });
+
+        function joinChannels() {
+            const channels = $('#channels').val().split(',');
+            channels.forEach(channel => {
+                socket.emit('join', channel.trim());
+            });
+        }
+
+        
+        socket.emit('join', "speakvoice");
+        */
+
+        /*
+        // ===================
+        const outputElement = document.getElementById('output');
+        const commandElement = document.getElementById('command');
+        //const sendButton = document.getElementById('send');
+
+        // Créer une instance de socket.io
+        //const socket = io();
+
+        // Écouter l'événement "output" du serveur
+        socket.on('data', (data) => {
+          // Afficher la sortie dans la zone de texte
+          outputElement.textContent += data;
+        });
+
+        // Envoyer la commande saisie au serveur
+        //sendButton.addEventListener('click', () => {
+        $("#send").click(function(){
+          console.log("send > "+$("#command").val());
+          socket.emit('command', $("#command").val());
+        });
+
+        // Démarrer le processus DOS
+        socket.emit('start');
+        */
+        
+        
+        //
+        const socket2 = io('localhost:1337');
+
+        $('#send').click(function() {
+          const command = $('#command').val();
+          console.log('Envoyer > ' + command);
+          socket2.emit('command', command);
+        });
+
+        socket2.on('command', (data) => {
+          console.log(data);
+          $('#output').append(data);
+        });
+        
+    </script>
+</body>
+</html>

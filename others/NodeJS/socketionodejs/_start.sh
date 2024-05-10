@@ -1,0 +1,1 @@
+node app.js --https-port 24443 --http-port 24080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
