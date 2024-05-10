@@ -66,3 +66,73 @@ remoteeval = RemoteEval(host = "0.0.0.0:14443", www_localdir= files.getParentdir
 See eg. in "build\webserver\spksay.py" to make your computer to "text to speak" (TTS) from this server
 
 You can also use this server to use all libraries (mouse control, ...) if you code it.
+
+___________________
+
+Others
+
+in folder others\NodeJS\socketionodejs can help to control your webbrowser with the start.bat that start server
+
+then you can add, in Chrome webbrowser the extensions: "User JavaScript and CSS", "CORS Unblock" to be able control the webbrowser with your voice
+
+and add a rule like this 
+
+### Rule to add in "User JavaScript and CSS"
+
+ $(document).ready(function(){
+  var url = window.location.href;
+  if(url.startsWith("https://gemini.google.com/app")){
+   var srcurl = "https://127.0.0.1:13443/gemini/gemini_to_youtube.js";
+          loadScript2(srcurl, function(){console.log("Loaded (web) "+srcurl)});
+  }
+ });
+ 
+ 
+ function loadScript2(url, onloaded){
+     console.log("load ... "+url);
+     //setTimeout(function(){
+         var isJsonResponse = false;
+         ajax.send(url, isJsonResponse, function(rep){
+             console.log("loaded web ... "+url);
+             //eval(rep);
+             
+    var scr = document.createElement("script");
+    scr.src = url;
+    document.body.appendChild(scr);
+             
+             onloaded(rep);
+         });
+     //}, 5000);
+ }
+ 
+ 
+ var ajax = {
+     send:function(url, isJsonResponse, ondone){
+         //data.action = 'sqlexplorer';
+         $.ajax({
+             type: 'GET',
+             url: url,
+             async: true,
+             cache: false,
+             beforeSend: function (request) {
+                 request.setRequestHeader("Authorization", "Negotiate");
+             },
+             success: function(res){
+                 if(!isJsonResponse){ ondone(res); return; }
+                 try{
+                     ondone(JSON.parse(res.trim())); return;
+                 }catch(e){
+                     //ondone({error:true,errorMessage:"Json malformed response",res:res,e:e}); return;
+                     ondone({error:true,errorMessage:res}); return;
+                 }
+             },
+             error: function(xhr, message, errorThrworn){
+                 ondone({error:true,errorMessage:"Pas de connexion au serveur. Veuillez recommencer."});
+             }
+         });
+     }
+     
+ };  
+
+
+
