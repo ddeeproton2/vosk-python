@@ -133,4 +133,4 @@ and add a rule like this
  };  
 
 
-
+Then see gemini_to_youtube.js how it's done ;)
