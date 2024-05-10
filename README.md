@@ -81,11 +81,8 @@ and add a rule like this
 
 ```javascript
  $(document).ready(function(){
-  var url = window.location.href;
-  if(url.startsWith("https://gemini.google.com/app")){
    var srcurl = "https://127.0.0.1:13443/gemini/gemini_to_youtube.js";
           loadScript2(srcurl, function(){console.log("Loaded (web) "+srcurl)});
-  }
  });
  
  
