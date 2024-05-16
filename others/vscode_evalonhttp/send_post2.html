@@ -1,0 +1,148 @@
+<html>
+    <body>
+
+        <form action="http://192.168.1.57:3000" method="post">
+            <textarea name="code">
+                /*
+                const position = new vscode.Position(0, 0);
+                const text = '//Votre texte ici';
+                
+                vscode.window.activeTextEditor.edit(editBuilder => {
+                  editBuilder.insert(position, text);
+                });
+                */
+                
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                  const selection = editor.selection;
+                  const position = selection.active;
+                
+                  const text = 'Votre texte ici';
+                
+                  editor.edit(editBuilder => {
+                    // Supprimer un caractère après
+                    editBuilder.delete(new vscode.Range(position, position.translate(0, 1))); 
+
+                    // Supprimer un caractère avant
+                    editBuilder.delete(new vscode.Range(position.translate(-1, 0), position)); 
+
+                    // Lire une ligne
+                    const lineNumber = position.line; // Numéro de ligne (0 indexé)
+                    const lineText = editor.document.lineAt(lineNumber).text; // Texte de la ligne
+
+                    // Lire la ligne depuis la position actuelle jusqu'à la fin
+                    const lineNumber = position.line;
+                    const lineText = editor.document.lineAt(lineNumber).text;
+                    const remainingLineText = lineText.substring(position.character);
+
+                    // Lire la ligne depuis le début jusqu'à la position actuelle
+                    const lineNumber = position.line;
+                    const lineText = editor.document.lineAt(lineNumber).text;
+                    const currentLinePrefix = lineText.substring(0, position.character);
+
+
+                    // Déplacer le focus à la ligne et caractère
+                    const lineNumber = 10;
+                    const characterPosition = 20;
+                    const targetPosition = new vscode.Position(lineNumber, characterPosition);
+                    editor.selection = new vscode.Selection(targetPosition, targetPosition);
+                    editor.revealRange(new vscode.Range(targetPosition, targetPosition));
+
+                    // Sélectionner 
+                    const startLineNumber = 5;
+                    const startCharacterPosition = 10;
+                    const endLineNumber = 12;
+                    const endCharacterPosition = 25;
+                    const startPosition = new vscode.Position(startLineNumber, startCharacterPosition);
+                    const endPosition = new vscode.Position(endLineNumber, endCharacterPosition);
+                    const selectionRange = new vscode.Range(startPosition, endPosition);
+                    editor.selection = new vscode.Selection(selectionRange, selectionRange);
+                    
+
+
+                    // Requête GET
+                    const url = 'https://exemple.com/endpoint?message='+ encodeURIComponent(message);
+                    const options = {
+                      hostname: 'exemple.com',
+                      port: 443, // HTTPS par défaut
+                      path: url,
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    };
+                    const req = https.request(options, (res) => {
+                      if (res.statusCode !== 200) {
+                        console.error(`Erreur de requête : ${res.statusCode}`);
+                        return;
+                      }
+                      let data = '';
+                      res.on('data', (chunk) => {
+                        data += chunk;
+                      });
+                      res.on('end', () => {
+                        try {
+                          const responseData = JSON.parse(data);
+                          console.log('Réponse de la requête :', responseData);
+                        } catch (error) {
+                          console.error('Erreur lors de l\'analyse de la réponse :', error);
+                        }
+                      });
+                    });
+                    req.on('error', (error) => {
+                      console.error('Erreur lors de la requête :', error);
+                    });
+                    req.end();
+
+
+
+
+                    // Requête POST
+                    const url = 'https://exemple.com/endpoint';
+                    const postData = `message=${encodedMessage}`;
+                    const options = {
+                      hostname: 'exemple.com',
+                      port: 443, // HTTPS par défaut
+                      path: url,
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    };
+                    const req = https.request(options, (res) => {
+                      if (res.statusCode !== 200) {
+                        console.error(`Erreur de requête : ${res.statusCode}`);
+                        return;
+                      }
+                      let data = '';
+                      res.on('data', (chunk) => {
+                        data += chunk;
+                      });
+                      res.on('end', () => {
+                        try {
+                          const responseData = JSON.parse(data);
+                          console.log('Réponse de la requête :', responseData);
+                        } catch (error) {
+                          console.error('Erreur lors de l\'analyse de la réponse :', error);
+                        }
+                      });
+                    });
+                    req.on('error', (error) => {
+                      console.error('Erreur lors de la requête :', error);
+                    });
+                    req.write(postData); // Envoyer les données de la requêt
+                    req.end();
+
+
+
+
+                  });
+                } else {
+                  window.showErrorMessage('Aucun éditeur de texte actif n\'a été trouvé.');
+                }
+            </textarea>
+            <input type="submit" value="ok" />
+        </form>
+
+    </body>
+</html>

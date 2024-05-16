@@ -1,0 +1,33 @@
+<html>
+    <body>
+
+        <form action="http://192.168.1.57:3000" method="post">
+            <textarea name="code">
+                /*
+                const position = new vscode.Position(0, 0);
+                const text = '//Votre texte ici';
+                
+                vscode.window.activeTextEditor.edit(editBuilder => {
+                  editBuilder.insert(position, text);
+                });
+                */
+                
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                  const selection = editor.selection;
+                  const position = selection.active;
+                
+                  const text = 'Votre texte ici';
+                
+                  editor.edit(editBuilder => {
+                    editBuilder.insert(position, text);
+                  });
+                } else {
+                  window.showErrorMessage('Aucun éditeur de texte actif n\'a été trouvé.');
+                }
+            </textarea>
+            <input type="submit" value="ok" />
+        </form>
+
+    </body>
+</html>
