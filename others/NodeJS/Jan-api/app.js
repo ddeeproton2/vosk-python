@@ -2,7 +2,8 @@ const axios = require('axios');
 
 ask("Affiche le code python pour afficher le message Salut");
 
-
+// This function is an API for this application LLM https://github.com/janhq/jan
+// See how to use then here http://127.0.0.1:1337/static/index.html
 function ask(msg){
     axios.defaults.timeout = 0; // Désactive le délai d'attente par défaut
 

@@ -1,5 +1,7 @@
-..\nodejs20\npm install express
-..\nodejs20\npm install socket.io
-..\nodejs20\npm install chokidar
-..\nodejs20\npm install yargs
+@rem Download nodejs v20... https://nodejs.org/en/download
+npm install express
+npm install socket.io
+npm install chokidar
+npm install yargs
+npm install axios
 @pause

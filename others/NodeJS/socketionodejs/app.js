@@ -1,4 +1,34 @@
-//..\nodejs20\node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
+//node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
+
+// =========================
+let config_speech_url = 'http://192.168.1.52:1225/?message='; 
+// Link to Listen port like application here 
+
+// Android:
+// https://github.com/ddeeproton2/vosk-android-demo-2024-TTS-Voice-over-HTTP
+
+// Windows:
+// https://github.com/ddeeproton2/vosk-python/blob/main/others/VoiceTextToSpeechHTTP.exe
+
+// Python:
+// https://github.com/ddeeproton2/vosk-python
+// See into assistant.bat
+// for param:
+// --speaker-server 0.0.0.0:7979
+// Like here
+//  %python% assistant.py --micro-device 0 --python-onload "build/roms/init.py" --python-onlistening "build/roms/start.py" --playsound-onstartspeaking %onstart%  --playsound-onendspeaking %onend% --speaker-server 0.0.0.0:7979 --micro-model "model/vosk-model-small-fr-0.22" 
+
+
+// =========================
+
+let config_jan_api = 'http://localhost:1337/v1/chat/completions';
+
+// Link with a Language Large Model (LLM) as API for Jan
+// https://github.com/janhq/jan
+// So you can speak with an IA :)
+
+// =========================
+
 const express = require('express'); 
 const http = require('http');
 const https = require('https');
@@ -6,6 +36,7 @@ const fs = require('fs');
 const socketIo = require('socket.io');
 const chokidar = require('chokidar');
 const yargs = require('yargs');
+const axios = require('axios');
 
 const app = express();
 const argv = yargs.argv;
@@ -299,8 +330,18 @@ app.get('/speak', (req, res) => {
   console.log(msg);
   ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
   ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
+  //speech(msg);
+  ask(msg, function(result){
+    console.log(result);
+    speech(result);
+  });
+  
+  
   res.json({ result: 'ok' });
 });
+
+
+
 
 /*
 app.get('/webresponse', (req, res) => {
@@ -328,5 +369,62 @@ console.log('Serveur UDP en écoute sur le port 41234');
 */
 
 
+function speech(msg){
+
+(async () => {
+  try {
+    const data = await get(config_speech_url+encodeURIComponent(msg));
+    //console.log(data); // Output: Parsed data (JSON, text, etc.)
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+})();
 
 
+
+// This function is an API for this application LLM https://github.com/janhq/jan
+// See how to use then here http://127.0.0.1:1337/static/index.html
+function ask(msg, onresult){ 
+    axios.defaults.timeout = 0;
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    const data = {
+      messages: [
+        {
+          role: "user",
+          content: msg
+        }
+      ],
+      model: "gemma-2b",
+      //model: "mistral-ins-7b-q4",
+      //model: "stable-zephyr-3b",
+      //model: "deepseek-coder-1.3b",
+      stream: false,
+      max_tokens: 2048,
+      "stop": [
+        "hello"
+      ],
+      frequency_penalty: 0.7,
+      presence_penalty: 0,
+      temperature: 0.7,
+      top_p: 0.95
+    };
+
+    console.log(msg);
+
+    // Envoyer la demande à l'API Jan Server
+    axios.post(config_jan_api, data, { headers })
+      .then(response => {
+          try{
+              let msg = response.data.choices[0].message.content
+              //console.log(msg);
+              onresult(msg);
+          }catch(e){}
+
+      })
+      .catch(error => {
+        console.error(error); // Afficher les erreurs, le cas échéant
+      });
+      
+}
