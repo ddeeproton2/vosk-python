@@ -69,6 +69,15 @@ See eg. in "build\webserver\spksay.py" to make your computer to "text to speak" 
 
 You can also use this server to use all libraries (mouse control, ...) if you code it.
 
+
+_____________________
+
+Optional 2
+
+You can see how to link this application with a LLM (Large Language Model) to speak with bots here
+
+https://github.com/ddeeproton2/vosk-python/tree/main/others/NodeJS/Jan-api
+
 ___________________
 
 Others
