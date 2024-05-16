@@ -157,6 +157,64 @@ async function get(url, options = {}) {
 
 
 
+// This function is for Text To Speech (TTS)
+function speech(msg){
+  (async () => {
+    try {
+      const data = await get(config_speech_url+encodeURIComponent(msg));
+      //console.log(data); // Output: Parsed data (JSON, text, etc.)
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  })();
+}
+
+
+// This function is an API for this application LLM https://github.com/janhq/jan
+// See how to use it when the server API is started http://127.0.0.1:1337/static/index.html
+function ask(msg, onresult){ 
+  axios.defaults.timeout = 0;
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  const data = {
+    messages: [
+      {
+        role: "user",
+        content: msg
+      }
+    ],
+    model: "gemma-2b",
+    //model: "mistral-ins-7b-q4",
+    //model: "stable-zephyr-3b",
+    //model: "deepseek-coder-1.3b",
+    stream: false,
+    max_tokens: 2048,
+    "stop": [
+      "hello"
+    ],
+    frequency_penalty: 0.7,
+    presence_penalty: 0,
+    temperature: 0.7,
+    top_p: 0.95
+  };
+  console.log(msg);
+  axios.post(config_jan_api, data, { headers })
+  .then(response => {
+      try{
+          let msg = response.data.choices[0].message.content
+          //console.log(msg);
+          onresult(msg);
+      }catch(e){}
+
+  })
+  .catch(error => {
+    console.error(error); 
+  });
+}
+
+
+
 
 
 
@@ -293,22 +351,20 @@ var onconnection = (socket) => {
   
 };
 
-// Logique pour le serveur HTTP
-ioHttp.on('connection', onconnection);
 
-// Logique pour le serveur HTTPS
+ioHttp.on('connection', onconnection);
 ioHttps.on('connection', onconnection);
 
-// Lancer les deux serveurs sur les ports spécifiés via la ligne de commande
 httpServer.listen(argv['http-port'] || 13080, () => {
-  console.log(`Le serveur HTTP écoute sur le port ${httpServer.address().port}`);
+  console.log(`Server HTTP listening on port ${httpServer.address().port}`);
 });
 
 httpsServer.listen(argv['https-port'] || 13443, () => {
-  console.log(`Le serveur HTTPS écoute sur le port ${httpsServer.address().port}`);
+  console.log(`Server HTTPS listening on port ${httpsServer.address().port}`);
 });
 
 /*
+// How to check change in a file
 const watcher = chokidar.watch(voicefile, {
   persistent: true,
   ignoreInitial: true,
@@ -324,6 +380,8 @@ watcher.on('change', (path) => {
 */
 
 
+var isQuestion = false;
+
 app.get('/speak', (req, res) => {
   //console.log(req);
   const msg = req.query.msg;
@@ -332,20 +390,32 @@ app.get('/speak', (req, res) => {
   ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
   ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
   //speech(msg);
-  ask(msg, function(result){
-    console.log(result);
-    //result = result.replaceAll("*","");
-    speech(result);
-  });
-  
-  
+  if(isQuestion){
+    isQuestion = false;
+    ask(msg, function(result){
+      console.log(result);
+      result = result.replaceAll("*","");
+      speech(result);
+    });
+  }
+  if(msg === "question"){
+    isQuestion = true;
+    speech("Say your question");
+  }
   res.json({ result: 'ok' });
 });
 
-
-
+console.log("=================================================================");
+console.log("Jan should be started as API Server https://github.com/janhq/jan");
+console.log("Voice Recognizer should be started https://github.com/ddeeproton2");
+// We should hear the text here if both servers are started
+const startMessage = "Please, say 'Question' to ask me something";
+console.log('You shoud hear this: "'+startMessage+'"');
+speech(startMessage);
+console.log("=================================================================");
 
 /*
+// How to send request to Python server like here https://github.com/ddeeproton2/vosk-python
 app.get('/webresponse', (req, res) => {
   const nom = req.query.nom;
   console.log(`Le nom est : ${nom}`);
@@ -360,74 +430,13 @@ app.get('/webresponse', (req, res) => {
 // ========================
 
 /*
-// Serveur UDP
+// How to use a Server UDP
 const dgram = require('dgram');
 const server = dgram.createSocket('udp4');
 server.on('message', (message, rinfo) => {
-  console.log(`Message reçu de ${rinfo.address}:${rinfo.port}: ${message}`);
+  console.log(`Message recieved from ${rinfo.address}:${rinfo.port}: ${message}`);
 });
-server.bind(41234, 'localhost'); // Remplacez par votre adresse IP et port souhaités
-console.log('Serveur UDP en écoute sur le port 41234');
+server.bind(41234, 'localhost'); // Set local port binding, or public '0.0.0.0'
+console.log('Serveur UDP is listening on port 41234');
 */
-
-
-function speech(msg){
-  (async () => {
-    try {
-      const data = await get(config_speech_url+encodeURIComponent(msg));
-      //console.log(data); // Output: Parsed data (JSON, text, etc.)
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  })();
-}
-
-
-// This function is an API for this application LLM https://github.com/janhq/jan
-// See how to use then here http://127.0.0.1:1337/static/index.html
-function ask(msg, onresult){ 
-    axios.defaults.timeout = 0;
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    const data = {
-      messages: [
-        {
-          role: "user",
-          content: msg
-        }
-      ],
-      model: "gemma-2b",
-      //model: "mistral-ins-7b-q4",
-      //model: "stable-zephyr-3b",
-      //model: "deepseek-coder-1.3b",
-      stream: false,
-      max_tokens: 2048,
-      "stop": [
-        "hello"
-      ],
-      frequency_penalty: 0.7,
-      presence_penalty: 0,
-      temperature: 0.7,
-      top_p: 0.95
-    };
-
-    console.log(msg);
-
-    // Envoyer la demande à l'API Jan Server
-    axios.post(config_jan_api, data, { headers })
-      .then(response => {
-          try{
-              let msg = response.data.choices[0].message.content
-              //console.log(msg);
-              onresult(msg);
-          }catch(e){}
-
-      })
-      .catch(error => {
-        console.error(error); // Afficher les erreurs, le cas échéant
-      });
-      
-}
-
 
