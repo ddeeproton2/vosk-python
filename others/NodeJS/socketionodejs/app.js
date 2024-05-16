@@ -2,22 +2,23 @@
 
 // =========================
 let config_speech_url = 'http://192.168.1.52:1225/?message='; 
-// Link to Listen port like application here 
+/*
+ Link to Listen port like application here 
 
-// Android:
-// https://github.com/ddeeproton2/vosk-android-demo-2024-TTS-Voice-over-HTTP
+ Android:
+ https://github.com/ddeeproton2/vosk-android-demo-2024-TTS-Voice-over-HTTP
 
-// Windows:
-// https://github.com/ddeeproton2/vosk-python/blob/main/others/VoiceTextToSpeechHTTP.exe
+ Windows:
+ https://github.com/ddeeproton2/vosk-python/blob/main/others/VoiceTextToSpeechHTTP.exe
 
-// Python:
-// https://github.com/ddeeproton2/vosk-python
-// See into assistant.bat
-// for param:
-// --speaker-server 0.0.0.0:7979
-// Like here
-//  %python% assistant.py --micro-device 0 --python-onload "build/roms/init.py" --python-onlistening "build/roms/start.py" --playsound-onstartspeaking %onstart%  --playsound-onendspeaking %onend% --speaker-server 0.0.0.0:7979 --micro-model "model/vosk-model-small-fr-0.22" 
-
+ Python:
+ https://github.com/ddeeproton2/vosk-python
+ See into assistant.bat
+ for param:
+ ...  --speaker-server 0.0.0.0:7979 ...
+ Like here:
+  %python% assistant.py --micro-device 0 --python-onload "build/roms/init.py" --python-onlistening "build/roms/start.py" --playsound-onstartspeaking %onstart%  --playsound-onendspeaking %onend% --speaker-server 0.0.0.0:7979 --micro-model "model/vosk-model-small-fr-0.22" 
+*/
 
 // =========================
 
@@ -333,6 +334,7 @@ app.get('/speak', (req, res) => {
   //speech(msg);
   ask(msg, function(result){
     console.log(result);
+    result = result.replaceAll("*","");
     speech(result);
   });
   
@@ -370,16 +372,15 @@ console.log('Serveur UDP en écoute sur le port 41234');
 
 
 function speech(msg){
-
-(async () => {
-  try {
-    const data = await get(config_speech_url+encodeURIComponent(msg));
-    //console.log(data); // Output: Parsed data (JSON, text, etc.)
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-})();
-
+  (async () => {
+    try {
+      const data = await get(config_speech_url+encodeURIComponent(msg));
+      //console.log(data); // Output: Parsed data (JSON, text, etc.)
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  })();
+}
 
 
 // This function is an API for this application LLM https://github.com/janhq/jan
@@ -428,3 +429,5 @@ function ask(msg, onresult){
       });
       
 }
+
+
