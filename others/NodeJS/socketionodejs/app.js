@@ -334,7 +334,7 @@ app.get('/speak', (req, res) => {
   //speech(msg);
   ask(msg, function(result){
     console.log(result);
-    result = result.replaceAll("*","");
+    //result = result.replaceAll("*","");
     speech(result);
   });
   
