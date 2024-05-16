@@ -1,0 +1,1 @@
+Alternative way to command the Keyboard and the Mouse on Ubuntu with the voice (if Python project does not work)
