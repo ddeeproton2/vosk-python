@@ -1,7 +1,8 @@
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 
 // =========================
-let config_speech_url = 'http://192.168.1.52:1225/?message='; 
+let config_speech_ip = '192.168.1.57'; 
+let config_speech_port = '1225';
 /*
  Link to Listen port like application here 
 
@@ -38,6 +39,7 @@ const socketIo = require('socket.io');
 const chokidar = require('chokidar');
 const yargs = require('yargs');
 const axios = require('axios');
+const bodyParser = require('body-parser');
 
 const app = express();
 const argv = yargs.argv;
@@ -88,16 +90,18 @@ app.get('/allwebsites/allwebsites.js', (req, res) => {
   res.sendFile(__dirname + '/WEB/allwebsites/allwebsites.js');
 });
 
-async function post(url, data, callback) {
+async function post2(url, data, callback) {
   try{
-      const encodedData = new URLSearchParams(data); // Encode data as URL-encoded string
-
+      //const encodedData = new URLSearchParams(data); // Encode data as URL-encoded string
+      const contentType = response.headers.get('Content-Type');
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',  // Set appropriate Content-Type
+          //'Content-Type': 'application/x-www-form-urlencoded',  // Set appropriate Content-Type
+          'Content-Type': contentType
         },
-        body: encodedData.toString(),  // Send encoded data as string
+        //body: encodedData.toString(),  // Send encoded data as string
+        body: data,  // Send encoded data as string
       });
 
       if (!response.ok) {
@@ -109,7 +113,56 @@ async function post(url, data, callback) {
   }catch(e){}
 }
 
+function post(url, data, callback){
+  console.log(url);
+  const urlParts = url.split('://'); // Split URL into protocol and remaining parts
+  const remainingParts = urlParts[1].split('/'); // Split remaining parts by '/'
+  const hostname = remainingParts[0].split(':')[0]; // Get hostname
+  const port = remainingParts[0].split(':')[1]; // Get port (if specified)
+  let path = `/`;
+  if(remainingParts.length > 1){ //TODO: This part I not tested
+    let path = `/${remainingParts.slice(2).join('/')}`; // Construct path
+  }
+  const options = {
+    hostname: hostname,
+    port: port || 80, // Set default port if not specified in URL
+    path: path,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  };
 
+  /*
+  const options = {
+    hostname: 'localhost', // Replace with the actual hostname
+    port: 3000, // Replace with the actual port if it's different from 80
+    path: '/', // Replace with the actual endpoint path
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded', // Set content type to form-encoded data
+    },
+  };
+  */
+  const request = http.request(options, (response) => {
+    console.log(`Status code: ${response.statusCode}`);
+  
+    response.on('data', (data2) => {
+      console.log(data2.toString());
+    });
+  
+    response.on('end', () => {
+      console.log('Response received.');
+    });
+  });
+    
+  const encodedData = Object.keys(data)
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+    .join('&');
+  
+  request.write(encodedData);
+  request.end();
+}
 
 
 /*
@@ -127,6 +180,9 @@ USE:
 */
 
 async function get(url, options = {}) {
+  console.log('GET '+url);
+  console.log('options');
+  console.log(options);
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -158,15 +214,20 @@ async function get(url, options = {}) {
 
 
 // This function is for Text To Speech (TTS)
-function speech(msg){
+function speech(msg, clientIP){
+  console.log("<speek");
+  console.log("To "+clientIP+" Say "+msg);
+  console.log("speek>");
+  
   (async () => {
     try {
-      const data = await get(config_speech_url+encodeURIComponent(msg));
+      const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
       //console.log(data); // Output: Parsed data (JSON, text, etc.)
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   })();
+  
 }
 
 
@@ -380,39 +441,285 @@ watcher.on('change', (path) => {
 */
 
 
-var isQuestion = false;
 
-app.get('/speak', (req, res) => {
-  //console.log(req);
-  const msg = req.query.msg;
-  console.log('Speak :');
-  console.log(msg);
-  ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
-  ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
-  //speech(msg);
-  if(isQuestion){
-    isQuestion = false;
-    ask(msg, function(result){
-      console.log(result);
-      result = result.replaceAll("*","");
-      speech(result);
+//========================================
+// Commands for VSCode
+//========================================
+
+
+function vscode_command_insert_text(msg){
+  msg = msg.replaceAll("'", "\\'");
+  code = `
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const selection = editor.selection;
+    const position = selection.active;
+  
+    const text = '`+msg+`';
+  
+    editor.edit(editBuilder => {
+      editBuilder.insert(position, text);
     });
+  } else {
+    window.showErrorMessage('Aucun éditeur de texte actif trouvé.');
   }
-  if(msg === "question"){
-    isQuestion = true;
-    speech("Say your question");
-  }
-  res.json({ result: 'ok' });
-});
+  `;
 
-console.log("=================================================================");
-console.log("Jan should be started as API Server https://github.com/janhq/jan");
-console.log("Voice Recognizer should be started https://github.com/ddeeproton2");
-// We should hear the text here if both servers are started
-const startMessage = "Please, say 'Question' to ask me something";
-console.log('You shoud hear this: "'+startMessage+'"');
-speech(startMessage);
-console.log("=================================================================");
+  post("http://127.0.0.1:3000", { code: code }, function(data) {
+    console.log(`Données reçues : ${data}`);
+  
+  });
+}
+
+
+
+function vscode_command_POST(msg){
+  msg = msg.replaceAll("'", "\\'");
+  code = `
+
+  const options = {
+    hostname: '127.0.0.1',
+    port: 13080, // Set default port if not specified in URL
+    path: '/speakpost',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  };
+  
+  const request = http.request(options, (response) => {
+  
+    response.on('data', (data2) => {
+      console.log(data2.toString());
+    });
+  
+    response.on('end', () => {
+      console.log('Response received.');
+    });
+  });
+  const msg = 'MESSAGE_TEST';
+  const data = {msg: msg};
+  const encodedData = Object.keys(data)
+    .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
+    .join('&');
+  
+  request.write(encodedData);
+  request.end();
+
+  `;
+
+  post("http://127.0.0.1:3000", { code: code }, function(data) {
+    console.log(`Données reçues : ${data}`);
+  
+  });
+}
+
+
+function vscode_command_read_current_line(msg){
+  msg = msg.replaceAll("'", "\\'");
+  code = `
+
+  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
+              
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const selection = editor.selection;
+    const position = selection.active;
+    const lineNumber = position.line;
+    const line = editor.document.lineAt(lineNumber);
+    const textBeforeCursor = line.text.substring(0, position.character);
+    const textAfterCursor = line.text.substring(position.character);
+
+    // Lire le contenu de l'éditeur
+    const documentText = editor.document.getText();
+    
+    /*
+    // Obtenir le texte avant le curseur
+    const textBeforeCursor = documentText.substring(0, position.character);
+    
+    // Obtenir le texte après le curseur
+    const textAfterCursor = documentText.substring(position.character + position.lineText.length);
+    */
+
+    // Insérer le marqueur du curseur
+    const cursorPlaceholder = "[votre curseur est ici]";
+    
+    // Construire le contenu de la variable
+    content_ask_IA = textBeforeCursor + cursorPlaceholder + textAfterCursor;
+    
+    // Afficher le contenu dans la console (optionnel)
+    console.log(content_ask_IA);
+
+
+    //=====
+    const msg = content_ask_IA;
+
+    const options = {
+      hostname: '127.0.0.1',
+      port: 13080, // Set default port if not specified in URL
+      path: '/speakpost',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+    
+    const request = http.request(options, (response) => {
+    
+      response.on('data', (data2) => {
+        console.log(data2.toString());
+      });
+    
+      response.on('end', () => {
+        console.log('Response received.');
+      });
+    });
+    
+    const data = {msg: msg};
+    const encodedData = Object.keys(data)
+      .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
+      .join('&');
+    
+    request.write(encodedData);
+    request.end();
+  } else {
+      window.showErrorMessage('Aucun éditeur de texte actif a été trouvé.');
+  }
+  `;
+
+  post("http://127.0.0.1:3000", { code: code }, function(data) {
+    console.log(`Données reçues : ${data}`);
+  
+  });
+}
+
+
+function vscode_command_read_all_lines(msg){
+  msg = msg.replaceAll("'", "\\'");
+  code = `
+
+  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
+              
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const selection = editor.selection;
+    const position = selection.active;
+    const lineNumber = position.line;
+  
+    // Obtenir le texte avant la ligne actuelle
+    const textBeforeCurrentLine = editor.document.getText(new vscode.Range(0, 0, lineNumber, 0));
+  
+    // Obtenir le texte après la ligne actuelle
+    const textAfterCurrentLine = editor.document.getText(new vscode.Range(lineNumber + 1, 0, editor.document.lineCount, 0));
+  
+    // Obtenir le texte de la ligne actuelle (avec le curseur)
+    const currentLineText = editor.document.lineAt(lineNumber).text;
+  
+    // Insérer le marqueur du curseur
+    const cursorPlaceholder = '`+msg+`';
+  
+    // Construire le contenu de la variable
+    content_ask_IA = textBeforeCurrentLine +  currentLineText.substring(0, position.character) + cursorPlaceholder + currentLineText.substring(position.character) + "\\n" + textAfterCurrentLine;
+  
+
+
+    //=====
+    const msg = content_ask_IA;
+
+    const options = {
+      hostname: '127.0.0.1',
+      port: 13080, // Set default port if not specified in URL
+      path: '/speakpost',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+    
+    const request = http.request(options, (response) => {
+    
+      response.on('data', (data2) => {
+        console.log(data2.toString());
+      });
+    
+      response.on('end', () => {
+        console.log('Response received.');
+      });
+    });
+    
+    const data = {msg: msg};
+    const encodedData = Object.keys(data)
+      .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
+      .join('&');
+    
+    request.write(encodedData);
+    request.end();
+  } else {
+      window.showErrorMessage('Aucun éditeur de texte actif a été trouvé.');
+  }
+  `;
+
+  post("http://127.0.0.1:3000", { code: code }, function(data) {
+    console.log(`Données reçues : ${data}`);
+  
+  });
+}
+
+
+
+
+function vscode_command_2(msg){
+  let code = `
+  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
+              
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+
+      const selection = editor.selection;
+      const position = selection.active;
+      const lineNumber = position.line;
+      const line = editor.document.lineAt(lineNumber);
+      const textBeforeCursor = line.text.substring(0, position.character);
+      const textAfterCursor = line.text.substring(position.character);
+
+      // Lire le contenu de l'éditeur
+      const documentText = editor.document.getText();
+      
+      /*
+      // Obtenir le texte avant le curseur
+      const textBeforeCursor = documentText.substring(0, position.character);
+      
+      // Obtenir le texte après le curseur
+      const textAfterCursor = documentText.substring(position.character + position.lineText.length);
+      */
+
+      // Insérer le marqueur du curseur
+      const cursorPlaceholder = "[cursorIsHere]";
+      
+      // Construire le contenu de la variable
+      content_ask_IA = textBeforeCursor + cursorPlaceholder + textAfterCursor;
+      
+      // Afficher le contenu dans la console (optionnel)
+      console.log(content_ask_IA);
+
+      editor.edit(editBuilder => {
+        editBuilder.insert(position, content_ask_IA);
+      });
+
+
+  } else {
+      window.showErrorMessage('Aucun éditeur de texte actif n\'a été trouvé.');
+  }
+
+  `;
+
+  post("http://127.0.0.1:3000", { code: code }, function(data) {
+    console.log(`Données reçues : ${data}`);
+  
+  });
+}
+
+
 
 /*
 // How to send request to Python server like here https://github.com/ddeeproton2/vosk-python
@@ -439,4 +746,77 @@ server.on('message', (message, rinfo) => {
 server.bind(41234, 'localhost'); // Set local port binding, or public '0.0.0.0'
 console.log('Serveur UDP is listening on port 41234');
 */
+
+
+
+var isQuestion = false;
+var isCode = false;
+app.get('/speak', (req, res) => {
+  //console.log(req);
+  const msg = req.query.msg;
+  const segments = req.ip.split(':');
+  const clientIPv4 = segments.slice(-1);
+  console.log('From '+clientIPv4);
+  console.log('Speak :');
+  console.log(msg);
+  ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
+  ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
+  if(isQuestion){
+    isQuestion = false;
+    speech("Veuillez patienter. Je réfléchis à votre question. ", clientIPv4);
+    ask(msg, function(result){
+      console.log(result);
+      result = result.replaceAll("*","");
+      speech(result, clientIPv4);
+    });
+  }
+  if(msg === "question"){
+    isQuestion = true;
+    speech("Dites votre question", clientIPv4);
+  }
+  if(isCode){
+    isCode = false;
+    console.log("Lancement du code");
+    //vscode_command_insert_text('insertionCode');
+    //vscode_command_test('insertionCode');
+    vscode_command_read_all_lines(msg);
+  }
+
+  if(msg === "code"){
+    isCode = true;
+    speech("Dites votre question sur le code", clientIPv4);
+  }
+
+  res.json({ result: 'ok' });
+});
+
+
+
+// Configuration du middleware body-parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post('/speakpost', (req, res) => {
+  const msg = req.body.msg;
+  //console.log(`msg : ${msg}`);
+  //speech(msg, config_speech_ip);
+  ask(msg, function(result){
+    console.log("Réponse");
+    console.log(result);
+    //result = result.replaceAll("*","");
+    speech(result, config_speech_ip);
+  });
+
+  res.send('Données POST reçues avec succès !');
+});
+
+
+console.log("=================================================================");
+console.log("Jan should be started as API Server https://github.com/janhq/jan");
+console.log("Voice Recognizer should be started https://github.com/ddeeproton2");
+// We should hear the text here if both servers are started
+const startMessage = "Dites question pour me demander quelque chose";
+console.log('You shoud hear this: "'+startMessage+'"');
+speech(startMessage, config_speech_ip);
+console.log("=================================================================");
 
