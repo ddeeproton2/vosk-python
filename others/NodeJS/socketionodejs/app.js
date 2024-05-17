@@ -814,6 +814,11 @@ app.post('/speakpost', (req, res) => {
 console.log("=================================================================");
 console.log("Jan should be started as API Server https://github.com/janhq/jan");
 console.log("Voice Recognizer should be started https://github.com/ddeeproton2");
+console.log("This app.js need VSCode and the extension EvalOnHTTP server started:");
+console.log("https://github.com/ddeeproton2/vosk-python/blob/main/others/vscode_evalonhttp/VSCodeExtensions.exe");
+console.log("Commands:");
+console.log("Say question, to ask something to the IA");
+console.log("Say code, to ask something to the IA from the position of the cursor in VSCode editor");
 // We should hear the text here if both servers are started
 const startMessage = "Dites question pour me demander quelque chose";
 console.log('You shoud hear this: "'+startMessage+'"');
