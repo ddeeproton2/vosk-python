@@ -1,7 +1,7 @@
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 
 // =========================
-let config_speech_ip = '192.168.1.57'; 
+let config_speech_ip = '192.168.1.52'; 
 let config_speech_port = '1225';
 /*
  Link to Listen port like application here 
@@ -23,7 +23,7 @@ let config_speech_port = '1225';
 
 // =========================
 
-let config_jan_api = 'http://localhost:1337/v1/chat/completions';
+let config_jan_api = 'http://localhost:2339/v1/chat/completions';
 
 // Link with a Language Large Model (LLM) as API for Jan
 // https://github.com/janhq/jan
@@ -114,7 +114,7 @@ async function post2(url, data, callback) {
 }
 
 function post(url, data, callback){
-  console.log(url);
+  //console.log(url);
   const urlParts = url.split('://'); // Split URL into protocol and remaining parts
   const remainingParts = urlParts[1].split('/'); // Split remaining parts by '/'
   const hostname = remainingParts[0].split(':')[0]; // Get hostname
@@ -136,7 +136,7 @@ function post(url, data, callback){
   /*
   const options = {
     hostname: 'localhost', // Replace with the actual hostname
-    port: 3000, // Replace with the actual port if it's different from 80
+    port: 4000, // Replace with the actual port if it's different from 80
     path: '/', // Replace with the actual endpoint path
     method: 'POST',
     headers: {
@@ -145,14 +145,14 @@ function post(url, data, callback){
   };
   */
   const request = http.request(options, (response) => {
-    console.log(`Status code: ${response.statusCode}`);
+    //console.log(`Status code: ${response.statusCode}`);
   
     response.on('data', (data2) => {
-      console.log(data2.toString());
+      //console.log(data2.toString());
     });
   
     response.on('end', () => {
-      console.log('Response received.');
+      //console.log('Response received.');
     });
   });
     
@@ -180,9 +180,9 @@ USE:
 */
 
 async function get(url, options = {}) {
-  console.log('GET '+url);
-  console.log('options');
-  console.log(options);
+  //console.log('GET '+url);
+  //console.log('options');
+  //console.log(options);
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -245,14 +245,15 @@ function ask(msg, onresult){
         content: msg
       }
     ],
-    model: "gemma-2b",
+    model: "mistral-ins-7b-q4/Repository",
     //model: "mistral-ins-7b-q4",
     //model: "stable-zephyr-3b",
     //model: "deepseek-coder-1.3b",
     stream: false,
-    max_tokens: 2048,
+    //max_tokens: 2048,
+    max_tokens: 32768,
     "stop": [
-      "hello"
+      "st0ph3r3"
     ],
     frequency_penalty: 0.7,
     presence_penalty: 0,
@@ -465,7 +466,7 @@ function vscode_command_insert_text(msg){
   }
   `;
 
-  post("http://127.0.0.1:3000", { code: code }, function(data) {
+  post("http://127.0.0.1:4000", { code: code }, function(data) {
     console.log(`Données reçues : ${data}`);
   
   });
@@ -508,7 +509,7 @@ function vscode_command_POST(msg){
 
   `;
 
-  post("http://127.0.0.1:3000", { code: code }, function(data) {
+  post("http://127.0.0.1:4000", { code: code }, function(data) {
     console.log(`Données reçues : ${data}`);
   
   });
@@ -542,7 +543,7 @@ function vscode_command_read_current_line(msg){
     */
 
     // Insérer le marqueur du curseur
-    const cursorPlaceholder = "[votre curseur est ici]";
+    const cursorPlaceholder = "/* [Ma position du curseur] */";
     
     // Construire le contenu de la variable
     content_ask_IA = textBeforeCursor + cursorPlaceholder + textAfterCursor;
@@ -587,7 +588,7 @@ function vscode_command_read_current_line(msg){
   }
   `;
 
-  post("http://127.0.0.1:3000", { code: code }, function(data) {
+  post("http://127.0.0.1:4000", { code: code }, function(data) {
     console.log(`Données reçues : ${data}`);
   
   });
@@ -616,10 +617,10 @@ function vscode_command_read_all_lines(msg){
     const currentLineText = editor.document.lineAt(lineNumber).text;
   
     // Insérer le marqueur du curseur
-    const cursorPlaceholder = '`+msg+`';
+    const cursorPlaceholder = '/* [Ma position du curseur] */';
   
     // Construire le contenu de la variable
-    content_ask_IA = textBeforeCurrentLine +  currentLineText.substring(0, position.character) + cursorPlaceholder + currentLineText.substring(position.character) + "\\n" + textAfterCurrentLine;
+    content_ask_IA = "*** mom code:\\r\\n" + textBeforeCurrentLine +  currentLineText.substring(0, position.character) + cursorPlaceholder + currentLineText.substring(position.character) + "\\r\\n" + textAfterCurrentLine + "\\r\\n" + "*** Ma question\\r\\n"  +'`+msg+`';
   
 
 
@@ -659,7 +660,7 @@ function vscode_command_read_all_lines(msg){
   }
   `;
 
-  post("http://127.0.0.1:3000", { code: code }, function(data) {
+  post("http://127.0.0.1:4000", { code: code }, function(data) {
     console.log(`Données reçues : ${data}`);
   
   });
@@ -713,7 +714,7 @@ function vscode_command_2(msg){
 
   `;
 
-  post("http://127.0.0.1:3000", { code: code }, function(data) {
+  post("http://127.0.0.1:4000", { code: code }, function(data) {
     console.log(`Données reçues : ${data}`);
   
   });
@@ -752,42 +753,59 @@ console.log('Serveur UDP is listening on port 41234');
 var isQuestion = false;
 var isCode = false;
 app.get('/speak', (req, res) => {
-  //console.log(req);
-  const msg = req.query.msg;
-  const segments = req.ip.split(':');
-  const clientIPv4 = segments.slice(-1);
-  console.log('From '+clientIPv4);
-  console.log('Speak :');
-  console.log(msg);
-  ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
-  ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
-  if(isQuestion){
-    isQuestion = false;
-    speech("Veuillez patienter. Je réfléchis à votre question. ", clientIPv4);
+    //console.log(req);
+    const msg = req.query.msg;
+    const segments = req.ip.split(':');
+    const clientIPv4 = segments.slice(-1);
+    console.log('From '+clientIPv4);
+    console.log('Speak :');
+    console.log(msg);
+    ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
+    ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
+    if(isQuestion){
+        isQuestion = false;
+        speech("Veuillez patienter. Je réfléchis à votre question. ", clientIPv4);
+        ask(msg, function(result){
+          console.log(result);
+          result = result.replaceAll("*","").replaceAll("\\r","");
+          speech(result, clientIPv4);
+        });
+        res.json({ result: 'ok' });
+        return;
+    }
+    if(msg === "question"){
+        isQuestion = true;
+        speech("Dites votre question", clientIPv4);
+        res.json({ result: 'ok' });
+        return;
+    }
+    if(isCode){
+        isCode = false;
+        console.log("Lancement du code");
+        speech("Veuillez patienter. Je réfléchis à votre question. ", clientIPv4);
+        //vscode_command_insert_text('insertionCode');
+        //vscode_command_test('insertionCode');
+        vscode_command_read_all_lines(msg);
+        res.json({ result: 'ok' });
+        return;
+    }
+
+    if(msg === "code"){
+        isCode = true;
+        speech("Dites votre question sur le code", clientIPv4);
+        res.json({ result: 'ok' });
+        return;
+    }
+
+    /*
     ask(msg, function(result){
-      console.log(result);
-      result = result.replaceAll("*","");
-      speech(result, clientIPv4);
+        console.log(result);
+        result = result.replaceAll("*","");
+        speech(result, clientIPv4);
     });
-  }
-  if(msg === "question"){
-    isQuestion = true;
-    speech("Dites votre question", clientIPv4);
-  }
-  if(isCode){
-    isCode = false;
-    console.log("Lancement du code");
-    //vscode_command_insert_text('insertionCode');
-    //vscode_command_test('insertionCode');
-    vscode_command_read_all_lines(msg);
-  }
+    */
 
-  if(msg === "code"){
-    isCode = true;
-    speech("Dites votre question sur le code", clientIPv4);
-  }
-
-  res.json({ result: 'ok' });
+    res.json({ result: 'ok' });
 });
 
 
@@ -797,17 +815,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/speakpost', (req, res) => {
-  const msg = req.body.msg;
-  //console.log(`msg : ${msg}`);
-  //speech(msg, config_speech_ip);
-  ask(msg, function(result){
-    console.log("Réponse");
-    console.log(result);
-    //result = result.replaceAll("*","");
-    speech(result, config_speech_ip);
-  });
+    const msg = req.body.msg;
+    //console.log(`msg : ${msg}`);
+    //speech(msg, config_speech_ip);
+    ask(msg, function(result){
+        console.log("Réponse");
+        console.log(result);
+        //result = result.replaceAll("*","");
+        speech(result, config_speech_ip);
+    });
 
-  res.send('Données POST reçues avec succès !');
+    res.send('Données POST reçues avec succès !');
 });
 
 
