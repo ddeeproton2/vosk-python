@@ -1,7 +1,7 @@
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 
 // =========================
-let config_speech_ip = '192.168.1.52'; 
+let config_speech_ip = '192.168.1.57'; 
 let config_speech_port = '1225';
 /*
  Link to Listen port like application here 
@@ -118,14 +118,18 @@ async function post2(url, data, callback) {
 async function post(url, data, options = {}) {
 
   try {
+    const urlEncodedData = new URLSearchParams(data).toString();
+
     const response = await fetch(url, {
       method: 'POST',
       // Set default headers for POST requests (can be overridden in options)
       headers: {
-        'Content-Type': 'application/json', // Example, adjust based on data format
+        //'Content-Type': 'application/json', // Example, adjust based on data format
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       // Add data to be sent in the request body
-      body: JSON.stringify(data), // Assuming data is an object, adjust for other formats
+      //body: JSON.stringify(data), // Assuming data is an object, adjust for other formats
+      body: urlEncodedData,
       ...options, // Apply any additional options passed in
     }).catch((error) => {
       console.error(error); // Log the error
@@ -133,10 +137,11 @@ async function post(url, data, options = {}) {
 
     if (!response) {
       console.log(`HTTP Error  ${url}`);
+
       return "";
     }
     if (!response.ok) {
-      console.log(`HTTP Error: ${response.status}`);
+      console.log(`HTTP Error: ${response.status}  ${url}`);
       return "";
     }
 
@@ -157,19 +162,6 @@ async function post(url, data, options = {}) {
   }
 }
 
-/*
-USE:
-
-(async () => {
-  try {
-    const data = await get('http://127.0.0.1:8888/?message=cool');
-    console.log(data); // Output: Parsed data (JSON, text, etc.)
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-})();
-
-*/
 
 async function get(url, options = {}) {
   //console.log('GET '+url);
@@ -216,9 +208,7 @@ async function get(url, options = {}) {
 
 // This function is for Text To Speech (TTS)
 function speech(msg, clientIP){
-  console.log("<speek");
-  console.log("To "+clientIP+" Say "+msg);
-  console.log("speek>");
+  //console.log("To "+clientIP+" Say "+msg);
   try {  
     (async () => {
       try {
@@ -494,288 +484,18 @@ watcher.on('change', (path) => {
 // Commands for VSCode
 //========================================
 
-
-function vscode_command_insert_text(msg){
-  msg = msg.replaceAll("'", "\\'");
-  code = `
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const selection = editor.selection;
-    const position = selection.active;
-  
-    const text = '`+msg+`';
-  
-    editor.edit(editBuilder => {
-      editBuilder.insert(position, text);
-    });
-  } else {
-    window.showErrorMessage('Aucun éditeur de texte actif trouvé.');
-  }
-  `;
-
-  post("http://127.0.0.1:4000", { code: code }, function(data) {
-    console.log(`Données reçues : ${data}`);
-  
-  });
+function vscode_execute_code(code){
+  post("http://127.0.0.1:4000", { code: code });
 }
-
-
-
-function vscode_command_POST(msg){
-  msg = msg.replaceAll("'", "\\'");
-  code = `
-
-  const options = {
-    hostname: '127.0.0.1',
-    port: 13080, // Set default port if not specified in URL
-    path: '/speakpost',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  };
-  
-  const request = http.request(options, (response) => {
-  
-    response.on('data', (data2) => {
-      console.log(data2.toString());
-    });
-  
-    response.on('end', () => {
-      console.log('Response received.');
-    });
-  });
-  const msg = 'MESSAGE_TEST';
-  const data = {msg: msg};
-  const encodedData = Object.keys(data)
-    .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
-    .join('&');
-  
-  request.write(encodedData);
-  request.end();
-
-  `;
-
-  post("http://127.0.0.1:4000", { code: code }, function(data) {
-    console.log(`Données reçues : ${data}`);
-  
-  });
-}
-
-
-function vscode_command_read_current_line(msg){
-  msg = msg.replaceAll("'", "\\'");
-  code = `
-
-  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
-              
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const selection = editor.selection;
-    const position = selection.active;
-    const lineNumber = position.line;
-    const line = editor.document.lineAt(lineNumber);
-    const textBeforeCursor = line.text.substring(0, position.character);
-    const textAfterCursor = line.text.substring(position.character);
-
-    // Lire le contenu de l'éditeur
-    const documentText = editor.document.getText();
-    
-    /*
-    // Obtenir le texte avant le curseur
-    const textBeforeCursor = documentText.substring(0, position.character);
-    
-    // Obtenir le texte après le curseur
-    const textAfterCursor = documentText.substring(position.character + position.lineText.length);
-    */
-
-    // Insérer le marqueur du curseur
-    const cursorPlaceholder = "/* [Ma position du curseur] */";
-    
-    // Construire le contenu de la variable
-    content_ask_IA = textBeforeCursor + cursorPlaceholder + textAfterCursor;
-    
-    // Afficher le contenu dans la console (optionnel)
-    console.log(content_ask_IA);
-
-
-    //=====
-    const msg = content_ask_IA;
-
-    const options = {
-      hostname: '127.0.0.1',
-      port: 13080, // Set default port if not specified in URL
-      path: '/speakpost',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    };
-    
-    const request = http.request(options, (response) => {
-    
-      response.on('data', (data2) => {
-        console.log(data2.toString());
-      });
-    
-      response.on('end', () => {
-        console.log('Response received.');
-      });
-    });
-    
-    const data = {msg: msg};
-    const encodedData = Object.keys(data)
-      .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
-      .join('&');
-    
-    request.write(encodedData);
-    request.end();
-  } else {
-      window.showErrorMessage('Aucun éditeur de texte actif a été trouvé.');
-  }
-  `;
-
-  post("http://127.0.0.1:4000", { code: code }, function(data) {
-    console.log(`Données reçues : ${data}`);
-  
-  });
-}
-
-
-function vscode_command_read_all_lines(msg){
-  msg = msg.replaceAll("'", "\\'");
-  code = `
-
-  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
-              
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const selection = editor.selection;
-    const position = selection.active;
-    const lineNumber = position.line;
-  
-    // Obtenir le texte avant la ligne actuelle
-    const textBeforeCurrentLine = editor.document.getText(new vscode.Range(0, 0, lineNumber, 0));
-  
-    // Obtenir le texte après la ligne actuelle
-    const textAfterCurrentLine = editor.document.getText(new vscode.Range(lineNumber + 1, 0, editor.document.lineCount, 0));
-  
-    // Obtenir le texte de la ligne actuelle (avec le curseur)
-    const currentLineText = editor.document.lineAt(lineNumber).text;
-  
-    // Insérer le marqueur du curseur
-    const cursorPlaceholder = '/* [Ma position du curseur] */';
-  
-    // Construire le contenu de la variable
-    content_ask_IA = "*** mom code:\\r\\n" + textBeforeCurrentLine +  currentLineText.substring(0, position.character) + cursorPlaceholder + currentLineText.substring(position.character) + "\\r\\n" + textAfterCurrentLine + "\\r\\n" + "*** Ma question\\r\\n"  +'`+msg+`';
-  
-
-
-    //=====
-    const msg = content_ask_IA;
-
-    const options = {
-      hostname: '127.0.0.1',
-      port: 13080, // Set default port if not specified in URL
-      path: '/speakpost',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    };
-    
-    const request = http.request(options, (response) => {
-    
-      response.on('data', (data2) => {
-        console.log(data2.toString());
-      });
-    
-      response.on('end', () => {
-        console.log('Response received.');
-      });
-    });
-    
-    const data = {msg: msg};
-    const encodedData = Object.keys(data)
-      .map((key) => encodeURIComponent(key)+'='+encodeURIComponent(data[key]))
-      .join('&');
-    
-    request.write(encodedData);
-    request.end();
-  } else {
-      window.showErrorMessage('Aucun éditeur de texte actif a été trouvé.');
-  }
-  `;
-
-  post("http://127.0.0.1:4000", { code: code }, function(data) {
-    console.log(`Données reçues : ${data}`);
-  
-  });
-}
-
-
-
-
-function vscode_command_2(msg){
-  let code = `
-  let content_ask_IA = ""; // Variable pour stocker le contenu de l'éditeur
-              
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-
-      const selection = editor.selection;
-      const position = selection.active;
-      const lineNumber = position.line;
-      const line = editor.document.lineAt(lineNumber);
-      const textBeforeCursor = line.text.substring(0, position.character);
-      const textAfterCursor = line.text.substring(position.character);
-
-      // Lire le contenu de l'éditeur
-      const documentText = editor.document.getText();
-      
-      /*
-      // Obtenir le texte avant le curseur
-      const textBeforeCursor = documentText.substring(0, position.character);
-      
-      // Obtenir le texte après le curseur
-      const textAfterCursor = documentText.substring(position.character + position.lineText.length);
-      */
-
-      // Insérer le marqueur du curseur
-      const cursorPlaceholder = "[cursorIsHere]";
-      
-      // Construire le contenu de la variable
-      content_ask_IA = textBeforeCursor + cursorPlaceholder + textAfterCursor;
-      
-      // Afficher le contenu dans la console (optionnel)
-      console.log(content_ask_IA);
-
-      editor.edit(editBuilder => {
-        editBuilder.insert(position, content_ask_IA);
-      });
-
-
-  } else {
-      window.showErrorMessage('Aucun éditeur de texte actif n\'a été trouvé.');
-  }
-
-  `;
-
-  post("http://127.0.0.1:4000", { code: code }, function(data) {
-    console.log(`Données reçues : ${data}`);
-  
-  });
-}
-
 
 
 /*
-// How to send request to Python server like here https://github.com/ddeeproton2/vosk-python
+// How to send a request to Python server like here https://github.com/ddeeproton2/vosk-python
 app.get('/webresponse', (req, res) => {
-  const nom = req.query.nom;
-  console.log(`Le nom est : ${nom}`);
+  const name = req.query.getvarname;
+  console.log(`name : ${name}`);
   post("http://127.0.0.1", req.query, function*(data) {
-    console.log(`Données reçues : ${data}`);
+    console.log(`Data recieved : ${data}`);
   
   });
   res.json({ result: 'ok' });
@@ -830,9 +550,18 @@ app.get('/speak', (req, res) => {
         isCode = false;
         console.log("Lancement du code");
         speech("Veuillez patienter. Je réfléchis à votre question. ", clientIPv4);
-        //vscode_command_insert_text('insertionCode');
-        //vscode_command_test('insertionCode');
-        vscode_command_read_all_lines(msg);
+
+        let msg_protected = msg.replaceAll("'", "\'");
+
+        vscode_execute_code(`
+          let selected = cmd.readSelected();
+          if(selected === ""){
+            selected = cmd.readCurrentLine();
+          }
+          let msg = '`+msg_protected+`'+"\\n\\n"+selected;
+          cmd.post("http://127.0.0.1:13080/ask", {msg:msg});
+        `);
+
         res.json({ result: 'ok' });
         return;
     }
@@ -861,19 +590,22 @@ app.get('/speak', (req, res) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/speakpost', (req, res) => {
-    const msg = req.body.msg;
-    //console.log(`msg : ${msg}`);
-    //speech(msg, config_speech_ip);
-    ask(msg, function(result){
-        console.log("Réponse");
-        console.log(result);
-        //result = result.replaceAll("*","");
-        speech(result, config_speech_ip);
-    });
+app.post('/ask', (req, res) => {
+  const msg = req.body.msg;
+  console.log(`ask msg : ${msg}`);
+  speech(msg, config_speech_ip);
+  ask(msg, function(result){
+      console.log("Réponse");
+      console.log(result);
+      //result = result.replaceAll("*","");
+      speech(result, config_speech_ip);
+  });
 
-    res.send('Données POST reçues avec succès !');
+  res.send('Données POST reçues avec succès !');
 });
+
+
+
 
 
 console.log("=================================================================");
@@ -890,3 +622,34 @@ console.log('You shoud hear this: "'+startMessage+'"');
 speech(startMessage, config_speech_ip);
 console.log("=================================================================");
 
+/*
+code = `
+const editor = vscode.window.activeTextEditor;
+if (editor) {
+  const selection = editor.selection;
+  const position = selection.active;
+
+  const text = 'Votre texte ici';
+
+  editor.edit(editBuilder => {
+    editBuilder.insert(position, text);
+  });
+} else {
+  window.showErrorMessage("Aucun éditeur de texte actif n\'a été trouvé.");
+}
+
+`;
+
+console.log("vscode_command_read_all_lines()");
+//post_vscode("http://127.0.0.1/web/variables.php", { code: code }, function(data){});
+
+post("http://127.0.0.1:4000", { code: code });
+//post("http://127.0.0.1/web/variables.php", { code: code });
+*/
+
+
+/*
+vscode_execute_code(`
+cmd.post("http://127.0.0.1:13080/ask", {msg:"Bonjour"});
+`);
+*/
