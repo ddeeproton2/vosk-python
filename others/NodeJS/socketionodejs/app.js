@@ -40,6 +40,7 @@ const chokidar = require('chokidar');
 const yargs = require('yargs');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+const mysql = require('mysql');
 
 const app = express();
 const argv = yargs.argv;
@@ -113,57 +114,48 @@ async function post2(url, data, callback) {
   }catch(e){}
 }
 
-function post(url, data, callback){
-  //console.log(url);
-  const urlParts = url.split('://'); // Split URL into protocol and remaining parts
-  const remainingParts = urlParts[1].split('/'); // Split remaining parts by '/'
-  const hostname = remainingParts[0].split(':')[0]; // Get hostname
-  const port = remainingParts[0].split(':')[1]; // Get port (if specified)
-  let path = `/`;
-  if(remainingParts.length > 1){ //TODO: This part I not tested
-    let path = `/${remainingParts.slice(2).join('/')}`; // Construct path
+
+async function post(url, data, options = {}) {
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      // Set default headers for POST requests (can be overridden in options)
+      headers: {
+        'Content-Type': 'application/json', // Example, adjust based on data format
+      },
+      // Add data to be sent in the request body
+      body: JSON.stringify(data), // Assuming data is an object, adjust for other formats
+      ...options, // Apply any additional options passed in
+    }).catch((error) => {
+      console.error(error); // Log the error
+    });
+
+    if (!response) {
+      console.log(`HTTP Error`);
+      return "";
+    }
+    if (!response.ok) {
+      console.log(`HTTP Error: ${response.status}`);
+      return "";
+    }
+
+    const contentType = response.headers.get('Content-Type');
+
+    // Handle response based on content type (similar to GET function)
+    if (contentType.includes('json')) {
+      return await response.json(); // Parse JSON response
+    } else if (contentType.includes('text')) {
+      return await response.text(); // Get response as text
+    } else {
+      // Handle other content types as needed
+      return await response.blob(); // Or another appropriate format
+    }
+  } catch (error) {
+    console.error('POST request error:', error);
+    //throw error; // Re-throw the error for further handling if needed
   }
-  const options = {
-    hostname: hostname,
-    port: port || 80, // Set default port if not specified in URL
-    path: path,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  };
-
-  /*
-  const options = {
-    hostname: 'localhost', // Replace with the actual hostname
-    port: 4000, // Replace with the actual port if it's different from 80
-    path: '/', // Replace with the actual endpoint path
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded', // Set content type to form-encoded data
-    },
-  };
-  */
-  const request = http.request(options, (response) => {
-    //console.log(`Status code: ${response.statusCode}`);
-  
-    response.on('data', (data2) => {
-      //console.log(data2.toString());
-    });
-  
-    response.on('end', () => {
-      //console.log('Response received.');
-    });
-  });
-    
-  const encodedData = Object.keys(data)
-    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-    .join('&');
-  
-  request.write(encodedData);
-  request.end();
 }
-
 
 /*
 USE:
@@ -187,10 +179,19 @@ async function get(url, options = {}) {
     const response = await fetch(url, {
       method: 'GET',
       ...options, // Apply any additional options passed in
+    }).catch((error) => {
+      // Your error is here!
+      console.log(error)
     });
 
+    if (!response) {
+      console.log(`HTTP Error`);
+      return "";
+    }
     if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status}`);
+      //throw new Error(`HTTP Error: ${response.status}`);
+      console.log(`HTTP Error: ${response.status}`);
+      return "";
     }
 
     const contentType = response.headers.get('Content-Type');
@@ -206,7 +207,7 @@ async function get(url, options = {}) {
     }
   } catch (error) {
     console.error('GET request error:', error);
-    throw error; // Re-throw the error for further handling if needed
+    //throw error; // Re-throw the error for further handling if needed
   }
 }
 
@@ -218,16 +219,28 @@ function speech(msg, clientIP){
   console.log("<speek");
   console.log("To "+clientIP+" Say "+msg);
   console.log("speek>");
-  
-  (async () => {
-    try {
-      const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-      //console.log(data); // Output: Parsed data (JSON, text, etc.)
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  })();
-  
+  try {  
+    (async () => {
+      try {
+        //const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
+        //const data = await post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
+        post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg), {}, function(data) {
+          console.log(`Données reçues : ${data}`);
+        
+        });
+
+
+        //console.log(data); // Output: Parsed data (JSON, text, etc.)
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    })();
+    
+  } catch (error) {
+    console.error('GET request error:', error);
+    //throw error; // Re-throw the error for further handling if needed
+  }
+
 }
 
 
@@ -275,8 +288,52 @@ function ask(msg, onresult){
   });
 }
 
+async function executerRequeteMySQL(requete) {
+  try{
+    // Connexion à la base de données
+    const connexion = mysql.createConnection({
+      // Vos paramètres de connexion à la base de données
+      host: 'localhost',
+      user: 'root',
+      password: '',
+      database: 'votre_base_de_donnees'
+    });
 
+    
+    // Exécution de la requête et récupération des résultats
+    const [resultats, fields] = await connexion.query(requete);
 
+    // Déconnexion de la base de données
+    connexion.end();
+
+    // Conversion des résultats en tableau
+    const tableauDonnees = resultats.map(ligne => {
+      const objetDonnees = {};
+      for (let i = 0; i < fields.length; i++) {
+        objetDonnees[fields[i].name] = ligne[i];
+      }
+      return objetDonnees;
+    });
+  }catch(e){
+    console.log("Error MySQL connexion");
+    return;
+  }
+  // Retourner le tableau de données
+  return tableauDonnees;
+}
+
+/*
+// USE:
+const requete = 'SELECT * FROM ma_table';
+
+executerRequeteMySQL(requete)
+  .then(tableauDonnees => {
+    console.log(tableauDonnees);
+  })
+  .catch(erreur => {
+    console.error(erreur);
+  });
+*/
 
 
 
