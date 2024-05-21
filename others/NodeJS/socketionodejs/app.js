@@ -288,50 +288,40 @@ function ask(msg, onresult){
   });
 }
 
-async function executerRequeteMySQL(requete) {
+async function mysql_request(requete) {
   try{
-    // Connexion à la base de données
     const connexion = mysql.createConnection({
-      // Vos paramètres de connexion à la base de données
       host: 'localhost',
       user: 'root',
       password: '',
-      database: 'votre_base_de_donnees'
+      database: 'your_database'
     });
-
-    
-    // Exécution de la requête et récupération des résultats
-    const [resultats, fields] = await connexion.query(requete);
-
-    // Déconnexion de la base de données
+    const [result, fields] = await connexion.query(requete);
     connexion.end();
-
-    // Conversion des résultats en tableau
-    const tableauDonnees = resultats.map(ligne => {
-      const objetDonnees = {};
+    // Result in a array
+    const returnData = result.map(line => {
+      const objectData = {};
       for (let i = 0; i < fields.length; i++) {
-        objetDonnees[fields[i].name] = ligne[i];
+        objectData[fields[i].name] = line[i];
       }
-      return objetDonnees;
+      return objectData;
     });
   }catch(e){
     console.log("Error MySQL connexion");
     return;
   }
   // Retourner le tableau de données
-  return tableauDonnees;
+  return returnData;
 }
 
 /*
 // USE:
-const requete = 'SELECT * FROM ma_table';
-
-executerRequeteMySQL(requete)
-  .then(tableauDonnees => {
-    console.log(tableauDonnees);
+mysql_request('SELECT * FROM ma_table')
+  .then(sql_result => {
+    console.log(sql_result);
   })
-  .catch(erreur => {
-    console.error(erreur);
+  .catch(errormsg => {
+    console.error(errormsg);
   });
 */
 
