@@ -132,7 +132,7 @@ async function post(url, data, options = {}) {
     });
 
     if (!response) {
-      console.log(`HTTP Error`);
+      console.log(`HTTP Error  ${url}`);
       return "";
     }
     if (!response.ok) {
@@ -185,7 +185,7 @@ async function get(url, options = {}) {
     });
 
     if (!response) {
-      console.log(`HTTP Error`);
+      console.log(`HTTP Error  ${url}`);
       return "";
     }
     if (!response.ok) {
