@@ -461,11 +461,13 @@ function char_to_word(msg){
   msg = msg.replaceAll("|", "barre verticale");
   msg = msg.replaceAll("	", "tabulation");
   msg = msg.replaceAll("`", "accent grave inversé");
+  msg = msg.replaceAll("£", " Le curseur est ici. ");
   return msg;
 }
 
 
 function char_to_keyword(msg){
+  msg = msg.replaceAll("£", "");
   msg = msg.replaceAll(" ", "espace");
   msg = msg.replaceAll(".", "point");
   msg = msg.replaceAll(",", "virgule");
@@ -1259,10 +1261,16 @@ class Editor{
       }
 
       if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
-        speech("Lecture de visual code", this.clientIPv4);
+        //speech("Lecture de visual code", this.clientIPv4);
         this.vscode_read(this.nodeserver);
         return;
       }
+
+      if(vc.isCommand('lire_position', msg)){
+        this.vscode_readposition(this.nodeserver);
+        return;
+      }
+
       if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
         speech("Passe à la ligne suivante", this.clientIPv4);
         this.vscode_nextline(this.nodeserver);
@@ -1311,6 +1319,7 @@ class Editor{
         this.vscode_cursorMoveToPreviousChar(this.nodeserver);
         return;
       }
+
     }
     //===============
     if(this.working_mode === "spell_number"){
@@ -1440,6 +1449,15 @@ class Editor{
       }
       if(selected !== ""){
         cmd.post("http://`+nodeserver+`/spell", {msg:selected});
+      }
+    `);
+  }
+  vscode_readposition(nodeserver){
+    vscode_execute_code(`
+      let before = cmd.readCurrentLineBeforePosition();
+      let after = cmd.readCurrentLineAfterPosition();
+      if(before+after !== ""){
+        cmd.post("http://`+nodeserver+`/spell", {msg:before+"£"+after});
       }
     `);
   }
