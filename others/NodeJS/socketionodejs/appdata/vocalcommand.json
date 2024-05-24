@@ -1,0 +1,616 @@
+{
+  "0": [
+    "zéro"
+  ],
+  "1": [
+    "un"
+  ],
+  "2": [
+    "deux"
+  ],
+  "3": [
+    "trois"
+  ],
+  "4": [
+    "quatre"
+  ],
+  "5": [
+    "cinq"
+  ],
+  "6": [
+    "six"
+  ],
+  "7": [
+    "sept"
+  ],
+  "8": [
+    "huit"
+  ],
+  "9": [
+    "neuf"
+  ],
+  "annuler": [
+    "sortir",
+    "terminé",
+    "annulé"
+  ],
+  "suivant": [
+    "suivant",
+    "next",
+    "prochain",
+    "suivantes",
+    "suzanne",
+    "fuyant"
+  ],
+  "question": [
+    "j'ai une question",
+    "question"
+  ],
+  "vscode": [
+    "visual code",
+    "question code",
+    "question visuels",
+    "question visual code",
+    "question visual studio",
+    "question visuel code",
+    "question visuels code"
+  ],
+  "repeter": [
+    "répétez",
+    "répète",
+    "rudy",
+    "réfléchissez",
+    "répétition"
+  ],
+  "lire": [
+    "lire",
+    "lecture"
+  ],
+  "lignes_suivantes": [
+    "lignes suivantes",
+    "lignes suivante",
+    "prochaines lignes",
+    "ligne en en-dessous",
+    "ligne en dessous",
+    "ligne après",
+    "les suivantes",
+    "ligne suivantes",
+    "une suivantes",
+    "en dessous",
+    "descendre",
+    "town",
+    "dawn"
+  ],
+  "lignes_precedantes": [
+    "ligne précédente",
+    "line précédente",
+    "ligne au-dessus",
+    "ligne avant",
+    "cette ligne en haut",
+    "précédente ligne"
+  ],
+  "ecrire_chiffre": [
+    "écrire chiffres"
+  ],
+  "ecrire_lettre": [
+    "écrire lettre"
+  ],
+  "a": [
+    "ah"
+  ],
+  "b": [
+    "b"
+  ],
+  "c": [
+    "c'est"
+  ],
+  "d": [
+    "des"
+  ],
+  "e": [
+    "euh"
+  ],
+  "f": [
+    "f"
+  ],
+  "g": [
+    "j'ai"
+  ],
+  "h": [
+    "h"
+  ],
+  "i": [
+    "i"
+  ],
+  "j": [
+    "j"
+  ],
+  "k": [
+    "ca"
+  ],
+  "l": [
+    "elle"
+  ],
+  "m": [
+    "m"
+  ],
+  "n": [
+    "n",
+    "ni trop",
+    "nitro",
+    "nager",
+    "nico"
+  ],
+  "o": [
+    "oh"
+  ],
+  "p": [
+    "ps",
+    "patrick",
+    "perso"
+  ],
+  "q": [
+    "q",
+    "quelques",
+    "quelqu'un"
+  ],
+  "r": [
+    "heures",
+    "r",
+    "air",
+    "l'heure"
+  ],
+  "s": [
+    "s"
+  ],
+  "t": [
+    "the",
+    "thierry",
+    "thérèse",
+    "tronc"
+  ],
+  "u": [
+    "hu",
+    "u"
+  ],
+  "v": [
+    "vais",
+    "v"
+  ],
+  "w": [
+    "w"
+  ],
+  "x": [
+    "x",
+    "xénophobe",
+    "xénon"
+  ],
+  "y": [
+    "ii grec",
+    "il grec"
+  ],
+  "z": [
+    "z"
+  ],
+  "espace": [
+    "espace"
+  ],
+  "point": [
+    "pont",
+    "point",
+    "point final",
+    "au final"
+  ],
+  "virgule": [
+    "virgule"
+  ],
+  "plus": [
+    "plus",
+    "addition"
+  ],
+  "tiretsouligneousoulignemoins": [
+    "tir",
+    "tirerait",
+    "trait d'union",
+    "moins",
+    "tirait",
+    "soustraire"
+  ],
+  "parenthesesouligneouvrante": [
+    "ouvrir parenthèse",
+    "parenthèse ouvrant",
+    "parenthèse ouvrant top"
+  ],
+  "parenthesesoulignefermante": [
+    "fermez parenthèse",
+    "fermez la parenthèse",
+    "parenthèse ferment",
+    "parenthèse fermente"
+  ],
+  "doublesouligneguillemets": [
+    "double apostrophe",
+    "double au tibet",
+    "double guide",
+    "double qui tibet",
+    "double qui veulent",
+    "double non",
+    "double vivait",
+    "double guimet",
+    "double d'immeubles",
+    "double mais",
+    "il veut guillemets",
+    "double divers",
+    "double sim",
+    "google vivait",
+    "double divin",
+    "doubs vivait",
+    "de petits mais",
+    "double guillemets",
+    "double va",
+    "double cuisine",
+    "double viva",
+    "douglas d'yvette",
+    "de le climat",
+    "le divin",
+    "double me",
+    "double tuner",
+    "double climat",
+    "double-cliquez climat",
+    "double ginette",
+    "double gilet",
+    "double qui m'a",
+    "double j'y vais",
+    "le togo apostrophe",
+    "double d'iéna",
+    "google guillemets",
+    "double jean",
+    "double jamais",
+    "double bâtiment",
+    "doublez guimet",
+    "double qu'il est",
+    "le bloc yvette",
+    "double tu",
+    "double finesse",
+    "double qui meurt",
+    "deux blocs ginette",
+    "double qui va",
+    "double qui aimait",
+    "double évier va",
+    "double kunai",
+    "double est",
+    "double québec",
+    "double tibet",
+    "double antibes",
+    "double jean et",
+    "douglas équivalent",
+    "double club",
+    "tombe le tibet",
+    "double le tibet",
+    "double le climat",
+    "tout le québec",
+    "double tu m'as",
+    "deux blocs yvette",
+    "double cd veulent",
+    "doublez qu'il",
+    "double écrivait",
+    "double là",
+    "double guillemin",
+    "double qui aide",
+    "double qu'il",
+    "un double guillemets",
+    "double suivait",
+    "double diva",
+    "google qui",
+    "double dumas",
+    "google qui m'a",
+    "double gaiement",
+    "les double climat",
+    "le double qui m'a",
+    "toggle qui va",
+    "double ghislain",
+    "double deal"
+  ],
+  "apostrophe": [
+    "apostrophe"
+  ],
+  "pointsoulignedexclamation": [
+    "point d'exclamation"
+  ],
+  "pointsoulignedinterrogation": [
+    "point d'interrogation"
+  ],
+  "deuxsoulignepoints": [
+    "de pont",
+    "deux points",
+    "de fonds",
+    "le point",
+    "le pont"
+  ],
+  "pointsoulignevirgule": [
+    "pour un virgule",
+    "pour lire yeux",
+    "un virgule",
+    "trois virgule",
+    "point virgule",
+    "point-virgule"
+  ],
+  "slash": [
+    "slash",
+    "stage",
+    "flash"
+  ],
+  "antisouligneslash": [
+    "bats flash",
+    "bats vache",
+    "bac slash",
+    "l'axe lâche",
+    "boxe lâche",
+    "dax lâche",
+    "max backstage",
+    "pax lâche",
+    "backstage",
+    "bats lâche",
+    "bar flash",
+    "bac flash",
+    "max flash",
+    "bats l'image",
+    "basse lâche",
+    "max lâche",
+    "max h",
+    "mars lâche",
+    "max vas-tu",
+    "bague manche",
+    "bague lâche",
+    "bague flash",
+    "battent flash",
+    "vas-y lâche",
+    "balzac",
+    "bal slash",
+    "bah flash",
+    "dax match",
+    "taxe lâche",
+    "bâti h",
+    "backlinks",
+    "battre h",
+    "date flash",
+    "bac lâche",
+    "maquillage",
+    "massage",
+    "dax slash",
+    "tchatche",
+    "basse laque",
+    "bac cloche",
+    "dax flash",
+    "la cloche",
+    "bad flash",
+    "bats slash",
+    "la tva",
+    "battre lâche",
+    "base flash",
+    "vox flash"
+  ],
+  "arobase": [
+    "en gros base",
+    "a robin",
+    "a vos bases",
+    "arobase",
+    "halte"
+  ],
+  "diese": [
+    "dièse",
+    "diaz",
+    "hier",
+    "liège",
+    "d'hier"
+  ],
+  "dollar": [
+    "dollars"
+  ],
+  "pourcent": [
+    "pour cent"
+  ],
+  "chapeau": [
+    "circonflexe",
+    "chapeau"
+  ],
+  "etsoulignecommercial": [
+    "caractère and",
+    "t'es attachés",
+    "est attaché",
+    "elle est spécial",
+    "et en huit",
+    "et en vite",
+    "et enfants de huit",
+    "il est en forme de huit",
+    "les enfants de huit",
+    "les spécial",
+    "les spéciales",
+    "elle chat",
+    "le spécial",
+    "euh attaché",
+    "e commercial",
+    "et commercial",
+    "le commercial",
+    "spécial",
+    "attaché",
+    "caractère fernand",
+    "caractère reine",
+    "caractère inde",
+    "caractère elle"
+  ],
+  "etoile": [
+    "étoiles",
+    "multiplier",
+    "multiplication",
+    "fois",
+    "et toi",
+    "etoile",
+    "école"
+  ],
+  "souligne": [
+    "ciré ba",
+    "tirez bas",
+    "caractère soliman",
+    "caractère souligné",
+    "caractère soulignons",
+    "caractère soulignait aimant",
+    "caractère souligne mon",
+    "j'irai en bas",
+    "tirait en bas",
+    "tirez pas",
+    "tiré en bas",
+    "caractère souligna moi",
+    "caractère de soulignons"
+  ],
+  "egal": [
+    "égal"
+  ],
+  "accolade_ouvrante": [
+    "à colle à brandt",
+    "accolade au ventre",
+    "accolade ou franck",
+    "accolade ouvrant entre",
+    "accolade ouvrant",
+    "ouvrir accolade",
+    "accolade ouvert",
+    "parenthèse spécial",
+    "ouvrir parenthèse spécial",
+    "parenté spécial ouverte",
+    "parenthèse spécial ouverte",
+    "parenthèse accolade ouvrant",
+    "ouvrir parenthèse accolade",
+    "parenthèse accolade",
+    "parenthèse avec accolade",
+    "ouvrir davantage avec accolade",
+    "ouvrir parenthèse avec accolade",
+    "accolade"
+  ],
+  "accolade_fermante": [
+    "accolade ferment",
+    "fermez tarentaise spécial",
+    "fermez parenthèse spécial",
+    "accolade fermente",
+    "parenthèse spécial fermente",
+    "cerner accolade",
+    "fermez accolade",
+    "fermez la parenthèse spécial",
+    "accolade fermé"
+  ],
+  "crochet_ouvrant": [
+    "parenthèse a décroché ignorant",
+    "parenthèse avec crochet ouvrant",
+    "ouvrir parenthèse carré",
+    "parenthèse carré",
+    "parenthèse à angle droit",
+    "ouvrir parenthèse à tableau",
+    "parenthèse à tableau",
+    "crochet ouvrant",
+    "ouvrir crochet",
+    "crochet ouvert",
+    "parenthèse à angle droit ouvert"
+  ],
+  "crochet_fermant": [
+    "parenthèse accroché ferment",
+    "cerner parenthèse carré",
+    "crochet chèrement",
+    "fermez parenthèse carré",
+    "carnet parenthèse à angle droit",
+    "fermez parenthèse à angle droit",
+    "parenthèse à angle droit ferment",
+    "crochet ferment",
+    "fermez le crochet",
+    "fermez parenthèse à tableau",
+    "parenthèse de tableaux fermé",
+    "parenthèse avec crochet cerner",
+    "parenthèse avec crochet fermé"
+  ],
+  "plus_petit_que_ou_inferieur": [
+    "plus petit que"
+  ],
+  "plus_grand_que_ou_superieur": [
+    "plus grand que"
+  ],
+  "barre_verticale": [
+    "barre verticale",
+    "flash verticale",
+    "trait vertical",
+    "slash verticale"
+  ],
+  "tabulation": [
+    "chad",
+    "table",
+    "tabulation",
+    "cab",
+    "tab",
+    "abs",
+    "tags"
+  ],
+  "accent_grave_inverse": [
+    "accent grave inversé",
+    "apostrophe spécial",
+    "guillemets spécial",
+    "petit apostrophe",
+    "petite à te soit spécial",
+    "petit apostrophe spécial",
+    "petit guimet spécial"
+  ],
+  "oui": [
+    "oui",
+    "huit",
+    "ouais",
+    "i s",
+    "il s"
+  ],
+  "non": [
+    "non",
+    "mon",
+    "négatif",
+    "nos"
+  ],
+  "apprendre_commande": [
+    "apprendre commande",
+    "apprends commande",
+    "apprendre comment"
+  ],
+  "apprendre_chiffres": [
+    "a trois ans de chiffres",
+    "apprendre chiffres",
+    "à trois chiffres",
+    "l'équipe",
+    "suite",
+    "affronte chiffres"
+  ],
+  "apprendre_lettres": [
+    "apprendre lettre",
+    "apprendre lettres"
+  ],
+  "editeur": [
+    "éditeur",
+    "l'éditeur"
+  ],
+  "nouvelle_ligne": [
+    "nouvelle ligne",
+    "retour à la ligne"
+  ],
+  "effacer_avant": [
+    "effacer avant",
+    "effacer un caractère avant",
+    "effacer un",
+    "effacer un caractère"
+  ],
+  "effacer_apres": [
+    "effacer après",
+    "effacer un caractère après",
+    "supprimer après",
+    "supprimer un caractère après",
+    "d'effacer caractère après",
+    "les caractère après",
+    "effacer les caractères après",
+    "effacer de caractère après",
+    "ça ce qu'y a-t-il après",
+    "effacer caractère après"
+  ],
+  "precedent": [
+    "précédent"
+  ]
+}
