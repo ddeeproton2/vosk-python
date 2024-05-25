@@ -11,6 +11,8 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const os = require('os');
 const path = require('path');
+const http2 = require('node:http2');
+
 
 //==========================
 
@@ -964,7 +966,7 @@ class QuestionToLLM {
   }
   start(){
     this.isQuestion = true;
-    speech("Dites votre question", clientIPv4);
+    speech("Dites votre question", this.clientIPv4);
   }
   ask(msg){
     this.isQuestion = false;
@@ -1262,7 +1264,8 @@ class Editor{
 
       if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
         //speech("Lecture de visual code", this.clientIPv4);
-        this.vscode_read(this.nodeserver);
+        //this.vscode_read(this.nodeserver);
+        this.vscode_readposition(this.nodeserver);
         return;
       }
 
@@ -1621,7 +1624,6 @@ httpsServer.listen(argv['https-port'] || 13443, () => {
 });
 
 
-
 console.log("=================================================================");
 console.log("Jan should be started as API Server https://github.com/janhq/jan");
 console.log("Voice Recognizer should be started https://github.com/ddeeproton2");
@@ -1635,3 +1637,61 @@ console.log('You shoud hear this: "'+startMessage+'"');
 speech(startMessage, config_speech_ip);
 console.log("=================================================================");
 
+
+
+/*
+//========================================
+// server-to-server connexions - MASTER
+//========================================
+const privateKey2 = fs.readFileSync(argv['ssl-key2'] || __dirname + '/SSL/http2/localhost-privkey.pem', 'utf8');
+const certificate2 = fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem', 'utf8');
+
+const server = http2.createSecureServer({
+  key: privateKey2,
+  cert: certificate2,
+});
+server.on('error', (err) => console.error(err));
+
+server.on('stream', (stream, headers, flags) => {
+    //const method = headers[':method'];
+    //const path = headers[':path'];
+    //console.log("path="+path);
+    console.log(headers.test);
+
+  // stream is a Duplex
+  stream.respond({
+    'content-type': 'text/html; charset=utf-8',
+    ':status': 200,
+  });
+  stream.end('it works');
+});
+
+server.listen(12443); 
+
+//========================================
+// server-to-server connexions - CLIENT
+//========================================
+
+const clientConnexion = http2.connect('https://localhost:12443', {
+  ca: fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem'),
+});
+clientConnexion.on('error', (err) => console.error(err));
+
+const client = clientConnexion.request({ ':path': '/','test':'cool' });
+
+client.on('response', (headers, flags) => {
+  for (const name in headers) {
+    //console.log(`${name}: ${headers[name]}`);
+  }
+});
+
+client.setEncoding('utf8');
+let data = '';
+client.on('data', (chunk) => { data += chunk; });
+client.on('end', () => {
+  console.log(`${data}`);
+  clientConnexion.close();
+});
+client.end(); 
+
+*/
