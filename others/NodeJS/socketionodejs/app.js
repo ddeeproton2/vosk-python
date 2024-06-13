@@ -331,29 +331,40 @@ file.writeJSON('user.json', userData).then(() => {
 //==================================
 // HTTP Client 
 //==================================
-/*
-async function postThroughTor(url, data, options = {}) {
-  console.log(SocksProxyAgent);
-  try {
-      const agent = new SocksProxyAgent({
-          socksHost: '127.0.0.1', // Adresse du proxy SOCKS5 (Tor)
-          socksPort: 9050 // Port du proxy SOCKS5 (Tor)
-      });
 
-      const response = await axios.post(url, data, {
-          httpsAgent: agent, // Utilise l'agent SOCKS5 pour la requête
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      });
+function WebsocketTor(url, data, options = {}) {
 
-      console.log('Response:', response.data);
-      return response;
-  } catch (error) {
-      console.error('Error:', error.message);
-  }
+  // TODO 
+  return;
+  
+  var WebSocket = require('ws');
+  var SocksProxyAgent = require('socks-proxy-agent');
+
+  // SOCKS proxy to connect to
+  var proxy = process.env.socks_proxy || 'socks://127.0.0.1:9050';
+  console.log('using proxy server %j', proxy);
+
+  // WebSocket endpoint for the proxy to connect to
+  var endpoint = process.argv[2] || 'ws://echo.websocket.org';
+  console.log('attempting to connect to WebSocket %j', endpoint);
+
+  // create an instance of the `SocksProxyAgent` class with the proxy server information
+  var agent = new SocksProxyAgent(proxy);
+
+  // initiate the WebSocket connection
+  var socket = new WebSocket(endpoint, { agent: agent });
+
+  socket.on('open', function () {
+    console.log('"open" event!');
+    socket.send('hello world');
+  });
+
+  socket.on('message', function (data, flags) {
+    console.log('"message" event! %j %j', data, flags);
+    socket.close();
+  });
 }
-*/
+
 
 async function postTor(url, data, options = {}) {
 
