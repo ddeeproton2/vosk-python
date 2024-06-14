@@ -20,6 +20,7 @@ const request = require('request');
 //var shttp = require('socks5-http-client');
 
 const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
+var WebSocket = require('ws');
 
 
 //==========================
@@ -333,9 +334,6 @@ file.writeJSON('user.json', userData).then(() => {
 //==================================
 
 function WebsocketTor(url, data, options = {}) {
-  var WebSocket = require('ws');
-  var SocksProxyAgent = require('socks-proxy-agent');
-
   // SOCKS proxy to connect to
   var proxy = process.env.socks_proxy || 'socks://127.0.0.1:9050';
   console.log('using proxy server %j', proxy);
@@ -345,7 +343,7 @@ function WebsocketTor(url, data, options = {}) {
   console.log('attempting to connect to WebSocket %j', endpoint);
 
   // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent(proxy);
+  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
 
   // initiate the WebSocket connection
   var socket = new WebSocket(endpoint, { agent: agent });
