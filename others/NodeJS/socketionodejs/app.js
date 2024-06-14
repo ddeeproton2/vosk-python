@@ -120,14 +120,14 @@ server.listen(port, hostname, () => {
 //==================================
 //Use:
 //const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
-async function postTor(url, data, options = {}) {
+async function postTor(url, data, proxy = 'socks://127.0.0.1:9050') {
 
   var Turl = require('url');
   var opts = Turl.parse(url);
   const urlEncodedData = new URLSearchParams(data).toString();
 
   // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent('socks://127.0.0.1:9050');
+  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
   opts.agent = agent;
   opts.method = "POST";
   opts.body = urlEncodedData;
@@ -146,13 +146,13 @@ async function postTor(url, data, options = {}) {
 }
 //Use:
 //const data = getTor('http://my_adress_tor.onion:13080/socket.io.js');
-async function getTor(url, options = {}) {
+async function getTor(url, proxy = 'socks://127.0.0.1:9050') {
 
   var Turl = require('url');
   var opts = Turl.parse(url);
 
   // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent('socks://127.0.0.1:9050');
+  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
   opts.agent = agent;
   /*
   https.get(opts, function (res) {
@@ -276,7 +276,6 @@ function speech(msg, clientIP){
         //const data = await post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
         post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg), {}, function(data) {
           console.log(`Données reçues : ${data}`);
-        
         });
 
 
@@ -392,7 +391,7 @@ function ask(msg, onresult){
 function ask_anythinglm(msg, channel, onlydocuments, onresult){ 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X'
+    'Authorization': 'Bearer XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX'
   };
   var data = {
     "message": msg,
