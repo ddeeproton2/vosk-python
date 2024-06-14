@@ -55,7 +55,6 @@ function isWindowsOS() {
 let config_speech_ip = '192.168.1.52';
 //config_speech_ip = '192.168.1.56';
 //if(!isWindowsOS()){config_speech_ip = '127.0.0.1';}
-//config_speech_ip = '4gforg4fpgwi2r5wscqnx7jdj73jqjofykx5v75mxsloyad2zg67wpad.onion';
 //config_speech_ip = '127.0.0.1';
 let config_speech_port = '1225';
 //config_speech_port = '13443';
@@ -1889,8 +1888,7 @@ var proxy = 'socks://127.0.0.1:9050';
 console.log('using proxy server %j', proxy);
 
 // WebSocket endpoint for the proxy to connect to
-var endpoint = 'ws://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:14080';
-//var endpoint = 'ws://your_address_tor.onion:14080';
+var endpoint = 'ws://your_address_tor.onion:14080';
 console.log('attempting to connect to WebSocket %j', endpoint);
 
 // create an instance of the `SocksProxyAgent` class with the proxy server information
