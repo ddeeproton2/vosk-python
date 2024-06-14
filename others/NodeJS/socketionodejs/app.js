@@ -2084,9 +2084,15 @@ wss.on('connection', (ws) => {
 
 console.log('WebSocket server listening on port 14080');
 
-//===========================================================
+//==================================================
 
-
+/*
+// Open TOR configuration and open the port
+HiddenServiceDir Data\hidden_service
+HiddenServicePort 13080 127.0.0.1:13080
+HiddenServicePort 13443 127.0.0.1:13443
+HiddenServicePort 14080 127.0.0.1:14080
+*/
 
 /*
 // ============== Client websocket =================
