@@ -50,7 +50,7 @@ function isWindowsOS() {
 let config_speech_ip = '192.168.1.52';
 //config_speech_ip = '192.168.1.56';
 //if(!isWindowsOS()){config_speech_ip = '127.0.0.1';}
-//config_speech_ip = '4gforg4fpgwi2r5wscqnx7jdj73jqjofykx5v75mxsloyad2zg67wpad.onion';
+//config_speech_ip = 'my_adress_tor.onion';
 //config_speech_ip = '127.0.0.1';
 let config_speech_port = '1225';
 //config_speech_port = '13443';
