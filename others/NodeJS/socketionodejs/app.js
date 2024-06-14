@@ -2034,8 +2034,8 @@ client.end();
 
 
 
-// ============== Serveur en mode websocket =================
-const wss = new WebSocket.Server({ port: 14080 }); // Create WebSocket server on port 8080
+// ============== Serveur websocket =================
+const wss = new WebSocket.Server({ port: 14080 }); // Create WebSocket server on port 14080
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -2088,8 +2088,8 @@ console.log('WebSocket server listening on port 14080');
 
 
 
-
-// ============== Client en mode websocket =================
+/*
+// ============== Client websocket =================
 
 // SOCKS proxy to connect to
 var proxy = 'socks://127.0.0.1:9050';
@@ -2128,3 +2128,4 @@ if (typeof message === 'string') {
 });
 
 //===========================================================
+*/
