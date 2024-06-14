@@ -333,10 +333,6 @@ file.writeJSON('user.json', userData).then(() => {
 //==================================
 
 function WebsocketTor(url, data, options = {}) {
-
-  // TODO 
-  return;
-  
   var WebSocket = require('ws');
   var SocksProxyAgent = require('socks-proxy-agent');
 
@@ -345,7 +341,7 @@ function WebsocketTor(url, data, options = {}) {
   console.log('using proxy server %j', proxy);
 
   // WebSocket endpoint for the proxy to connect to
-  var endpoint = process.argv[2] || 'ws://echo.websocket.org';
+  var endpoint = process.argv[2] || 'ws://127.0.0.1:13080';
   console.log('attempting to connect to WebSocket %j', endpoint);
 
   // create an instance of the `SocksProxyAgent` class with the proxy server information
@@ -353,6 +349,8 @@ function WebsocketTor(url, data, options = {}) {
 
   // initiate the WebSocket connection
   var socket = new WebSocket(endpoint, { agent: agent });
+
+  //socket.emit("","");
 
   socket.on('open', function () {
     console.log('"open" event!');
@@ -631,6 +629,36 @@ function spell(msg, clientIP) {
 // This function is an API for this application LLM https://github.com/janhq/jan
 // See how to use it when the server API is started http://127.0.0.1:1337/static/index.html
 function ask(msg, onresult){ 
+  ask_lmstudio(msg, onresult);
+}
+
+
+function ask_anythinglm(msg, channel, onlydocuments, onresult){ 
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X'
+  };
+  var data = {
+    "message": msg,
+    "mode": onlydocuments === true ? "query" : "chat"
+  };
+
+  axios.post("http://localhost:3001/api/v1/workspace/"+channel+"/chat", data, { headers })
+  .then(response => {
+      try{
+          //console.log(response); 
+          onresult(response.data.textResponse);
+      }catch(e){
+        console.error(e); 
+      }
+  })
+  .catch(error => {
+    console.error(error); 
+  });
+}
+
+
+function ask_lmstudio(msg, onresult){ 
   axios.defaults.timeout = 0;
   const headers = {
     'Content-Type': 'application/json'
@@ -1899,7 +1927,13 @@ app.get('/speak', (req, res) => {
 
 // This function is for Text To Speech (TTS)
 function tester(){
-  
+  let onlydocuments = false;
+  ask_anythinglm("1 + 1 ?", "general", onlydocuments, function(msg){
+    console.log(msg);
+  });
+  return;
+
+
   const data = getTor('http://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:13080/socket.io.js');
   //const data = postTor('https://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:13443/socket.io.js', {});
   console.log(data);
