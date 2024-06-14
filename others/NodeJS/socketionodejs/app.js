@@ -332,36 +332,8 @@ file.writeJSON('user.json', userData).then(() => {
 //==================================
 // HTTP Client 
 //==================================
-
-function WebsocketTor(url, data, options = {}) {
-  // SOCKS proxy to connect to
-  var proxy = process.env.socks_proxy || 'socks://127.0.0.1:9050';
-  console.log('using proxy server %j', proxy);
-
-  // WebSocket endpoint for the proxy to connect to
-  var endpoint = process.argv[2] || 'ws://127.0.0.1:13080';
-  console.log('attempting to connect to WebSocket %j', endpoint);
-
-  // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
-
-  // initiate the WebSocket connection
-  var socket = new WebSocket(endpoint, { agent: agent });
-
-  //socket.emit("","");
-
-  socket.on('open', function () {
-    console.log('"open" event!');
-    socket.send('hello world');
-  });
-
-  socket.on('message', function (data, flags) {
-    console.log('"message" event! %j %j', data, flags);
-    socket.close();
-  });
-}
-
-
+//Use:
+//const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
 async function postTor(url, data, options = {}) {
 
   var Turl = require('url');
@@ -386,8 +358,8 @@ async function postTor(url, data, options = {}) {
   });
 
 }
-
-
+//Use:
+//const data = getTor('http://my_adress_tor.onion:13080/socket.io.js');
 async function getTor(url, options = {}) {
 
   var Turl = require('url');
@@ -1923,37 +1895,9 @@ app.get('/speak', (req, res) => {
 
 
 
-// This function is for Text To Speech (TTS)
+
 function tester(){
-  let onlydocuments = false;
-  ask_anythinglm("1 + 1 ?", "general", onlydocuments, function(msg){
-    console.log(msg);
-  });
-  return;
 
-
-  const data = getTor('http://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:13080/socket.io.js');
-  //const data = postTor('https://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:13443/socket.io.js', {});
-  console.log(data);
-  return;
-  try {  
-    (async () => {
-      try {
-        //const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-        //const data = await post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-        const data = await postTor('http://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:13080/socket.io.js', {});
-
-
-        //console.log(data); // Output: Parsed data (JSON, text, etc.)
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    })();
-    
-  } catch (error) {
-    console.error('GET request error:', error);
-    //throw error; // Re-throw the error for further handling if needed
-  }
 
 }
 
@@ -2087,3 +2031,100 @@ client.on('end', () => {
 client.end(); 
 
 */
+
+
+
+// ============== Serveur en mode websocket =================
+const wss = new WebSocket.Server({ port: 14080 }); // Create WebSocket server on port 8080
+
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+
+  ws.on('message', (message) => {
+
+    // Handle message as UTF-8 encoded text (most common scenario)
+    if (typeof message === 'string') {
+      console.log('Received message:', message);
+    } else if (message instanceof Buffer) {
+      // Handle message as binary data if necessary
+      console.log('Received binary data:', message.toString('utf-8')); // Assuming UTF-8 encoding
+    } else {
+      console.warn('Received message in unknown format:', message);
+    }
+
+
+    ws.send('Hello from the server!');
+    /*
+    try {
+      const data = JSON.parse(message); // Attempt to parse JSON message
+      const { action, channel, varname, value } = data; // Destructure message properties
+
+      if (action === 'join') { // Handle 'join' action
+        console.log(`${ws.remoteAddress} joined channel: ${channel}`);
+        ws.join(channel); // Simulate channel joining (replace with your channel management logic)
+      } else if (action === 'emitto' || action === 'emitall') { // Handle 'emitto' or 'emitall' actions
+        if (!channel || !varname || typeof value === 'undefined') {
+          console.error('Invalid emit message format');
+          return;
+        }
+
+        const emitTo = action === 'emitto' ? [varname] : wss.clients.filter((client) => client.readyState === WebSocket.OPEN); // Target specific client(s) or all connected clients
+        emitTo.forEach((client) => client.send(JSON.stringify({ from: ws.remoteAddress, to, action, varname, value })));
+      } else {
+        console.warn(`Unknown action: ${action}`);
+      }
+    } catch (error) {
+      console.error('Error processing message:', error);
+    }
+    */
+  });
+
+  // ... (add other event handlers for 'close', 'error', etc. as needed)
+});
+
+console.log('WebSocket server listening on port 14080');
+
+//===========================================================
+
+
+
+
+// ============== Client en mode websocket =================
+
+// SOCKS proxy to connect to
+var proxy = 'socks://127.0.0.1:9050';
+console.log('using proxy server %j', proxy);
+
+// WebSocket endpoint for the proxy to connect to
+var endpoint = 'ws://your_address_tor.onion:14080';
+console.log('attempting to connect to WebSocket %j', endpoint);
+
+// create an instance of the `SocksProxyAgent` class with the proxy server information
+var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
+
+// initiate the WebSocket connection
+var socket = new WebSocket(endpoint, { 
+agent: agent,
+perMessageDeflate: false
+});
+
+socket.on('open', () => {
+console.log('WebSocket connection opened');
+socket.send('Hello from the client!');
+});
+
+socket.on('message', (message) => {
+
+// Handle message as UTF-8 encoded text (most common scenario)
+if (typeof message === 'string') {
+  console.log('Received message from server:', message);
+} else if (message instanceof Buffer) {
+  // Handle message as binary data if necessary
+  console.log('Received binary data from server:', message.toString('utf-8')); // Assuming UTF-8 encoding
+} else {
+  console.warn('Received message from server in unknown format:', message);
+}
+
+});
+
+//===========================================================
