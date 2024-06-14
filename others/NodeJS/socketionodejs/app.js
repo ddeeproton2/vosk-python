@@ -1,3 +1,5 @@
+
+
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 const express = require('express'); 
 const http = require('http');
@@ -22,6 +24,7 @@ const request = require('request');
 const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
 var WebSocket = require('ws');
 
+const PGP = require('./lib/PGP.js');
 
 //==========================
 
@@ -50,7 +53,6 @@ function isWindowsOS() {
 let config_speech_ip = '192.168.1.52';
 //config_speech_ip = '192.168.1.56';
 //if(!isWindowsOS()){config_speech_ip = '127.0.0.1';}
-//config_speech_ip = 'my_adress_tor.onion';
 //config_speech_ip = '127.0.0.1';
 let config_speech_port = '1225';
 //config_speech_port = '13443';
@@ -1972,7 +1974,7 @@ console.log("Say code, to ask something to the IA from the position of the curso
 console.log('You shoud hear this: "'+startMessage+'"');
 speech(startMessage, config_speech_ip);
 console.log("=================================================================");
-tester();
+
 
 
 /*
@@ -2034,8 +2036,8 @@ client.end();
 
 
 
-// ============== Serveur websocket =================
-const wss = new WebSocket.Server({ port: 14080 }); // Create WebSocket server on port 14080
+// ============== Serveur en mode websocket =================
+const wss = new WebSocket.Server({ port: 14080 }); // Create WebSocket server on port 8080
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -2102,7 +2104,7 @@ var proxy = 'socks://127.0.0.1:9050';
 console.log('using proxy server %j', proxy);
 
 // WebSocket endpoint for the proxy to connect to
-var endpoint = 'ws://your_address_tor.onion:14080';
+//var endpoint = 'ws://your_address_tor.onion:14080';
 console.log('attempting to connect to WebSocket %j', endpoint);
 
 // create an instance of the `SocksProxyAgent` class with the proxy server information
@@ -2133,5 +2135,16 @@ if (typeof message === 'string') {
 
 });
 
+//===========================================================
+*/
+
+/*
+//========================= PGP =============================
+var d = new Date();
+var sessionPGP = PGP.generate();
+console.log(sessionPGP);
+console.log(d.getTime())
+var enc = PGP.encrypt("Hello this message is secure", sessionPGP.publicKey);
+console.log(PGP.decrypt(enc,sessionPGP.privateKey));
 //===========================================================
 */
