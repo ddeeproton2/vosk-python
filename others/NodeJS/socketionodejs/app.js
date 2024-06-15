@@ -60,7 +60,7 @@ const config = require('./config.js');
 
 const app = express();
 const argv = yargs.argv;
-const voicefile = __dirname + '/DATA/voice.json';
+//const voicefile = __dirname + '/DATA/voice.json'; // check if file change, then we recieved a voice message
 const privateKey = fs.readFileSync(argv['ssl-key'] || config.httpsServer.ssl.privateKey, 'utf8');
 const certificate = fs.readFileSync(argv['ssl-cert'] || config.httpsServer.ssl.certificate, 'utf8');
 const ca = fs.readFileSync(argv['ssl-ca'] || config.httpsServer.ssl.ca, 'utf8');

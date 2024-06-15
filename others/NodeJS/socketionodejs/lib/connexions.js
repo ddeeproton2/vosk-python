@@ -2,8 +2,8 @@ const Turl = require('url');
 const os = require('os');
 const WebSocket = require('ws');
 const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
-
-
+const axios = require('axios');
+const mysql = require('mysql');
 
 class Connexions{
     constructor(){
