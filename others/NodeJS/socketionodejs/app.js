@@ -348,7 +348,6 @@ if(config.anythingllm.is_server){
 
 // ============== Client websocket =================
 if(config.anythingllm.is_client){
-
   internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(socket){
     console.log('WebSocket connection opened');
     socket.send('Hello from the client!');
@@ -356,8 +355,9 @@ if(config.anythingllm.is_client){
     console.log('Server message: '+message);
     //socket.send('Message recieved from the client!');
   };
-
 }
+
+
   /*
   //========================= PGP =============================
   var d = new Date();
