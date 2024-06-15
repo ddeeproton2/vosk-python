@@ -31,7 +31,7 @@ module.exports = {
     vs_code_eval: "http://127.0.0.1:4000",
 
 
-    // This server
+    // This server from client
 
     nodeserver: '127.0.0.1:13080',
 

@@ -61,9 +61,9 @@ const config = require('./config.js');
 const app = express();
 const argv = yargs.argv;
 const voicefile = __dirname + '/DATA/voice.json';
-const privateKey = fs.readFileSync(argv['ssl-key'] || __dirname + '/SSL/private-key.pem', 'utf8');
-const certificate = fs.readFileSync(argv['ssl-cert'] || __dirname + '/SSL/certificate.pem', 'utf8');
-const ca = fs.readFileSync(argv['ssl-ca'] || __dirname + '/SSL/ca.pem', 'utf8');
+const privateKey = fs.readFileSync(argv['ssl-key'] || config.httpsServer.ssl.privateKey, 'utf8');
+const certificate = fs.readFileSync(argv['ssl-cert'] || config.httpsServer.ssl.certificate, 'utf8');
+const ca = fs.readFileSync(argv['ssl-ca'] || config.httpsServer.ssl.ca, 'utf8');
 const credentials = { key: privateKey, cert: certificate, ca: ca };
 
 // Serveur HTTP
@@ -73,7 +73,6 @@ const ioHttp = socketIo(httpServer);
 // Serveur HTTPS
 const httpsServer = https.createServer(credentials, app);
 const ioHttps = socketIo(httpsServer);
-
 
 const allLocalIps = internet.getAllLocalIpAddresses();
 
@@ -256,7 +255,6 @@ app.get('/webresponse', (req, res) => {
 
 // ====================================
 
-const startMessage = "Dites question pour me demander quelque chose. Dites question visual studio ou Apprendre commande, ou Apprendre lettre, ou Apprendre chiffres, ou éditeur, ou répêter.";
 
 app.get('/speak', (req, res) => {
     //console.log(req);
@@ -304,24 +302,27 @@ app.post('/speak', (req, res) => {
   res.send('Données POST reçues avec succès !');
 });
 
-httpServer.listen(argv['http-port'] || 13080, () => {
-  console.log(`Node HTTP serving on:`);
-  if (allLocalIps.length > 0) {
-    allLocalIps.forEach(ip => console.log(`${ip}:${httpServer.address().port}`));
-  } else {
-    console.error('No local ip found');
-  }
-  //console.log(`Server HTTP listening `+internet.getLocalIpAddress()+`:${httpServer.address().port}`);
-});
+if(config.httpServer.enabled){
+  httpServer.listen(argv['http-port'] || config.httpServer.port, () => {
+    console.log(`Node HTTP serving on:`);
+    if (allLocalIps.length > 0) {
+      allLocalIps.forEach(ip => console.log(`${ip}:${httpServer.address().port}`));
+    } else {
+      console.error('No local ip found');
+    }
+    //console.log(`Server HTTP listening `+internet.getLocalIpAddress()+`:${httpServer.address().port}`);
+  });
+}
 
-httpsServer.listen(argv['https-port'] || 13443, () => {
-  console.log(`Node HTTPS serving on:`);
-  if (allLocalIps.length > 0) {
-    allLocalIps.forEach(ip => console.log(`${ip}:${httpsServer.address().port}`));
-  }
-  //console.log(`Server node HTTPS listening `+internet.getLocalIpAddress()+`:${httpsServer.address().port}`);
-});
-
+if(config.httpsServer.enabled){
+  httpsServer.listen(argv['https-port'] || config.httpsServer.port, () => {
+    console.log(`Node HTTPS serving on:`);
+    if (allLocalIps.length > 0) {
+      allLocalIps.forEach(ip => console.log(`${ip}:${httpsServer.address().port}`));
+    }
+    //console.log(`Server node HTTPS listening `+internet.getLocalIpAddress()+`:${httpsServer.address().port}`);
+  });
+}
 
 console.log("=================================================================");
 console.log("Jan should be started as API Server https://github.com/janhq/jan");
@@ -332,11 +333,10 @@ console.log("Commands:");
 console.log("Say question, to ask something to the IA");
 console.log("Say code, to ask something to the IA from the position of the cursor in VSCode editor");
 // We should hear the text here if both servers are started
+const startMessage = "Dites question pour me demander quelque chose. Dites question visual studio ou Apprendre commande, ou Apprendre lettre, ou Apprendre chiffres, ou éditeur, ou répêter.";
 console.log('You shoud hear this: "'+startMessage+'"');
 speakcommands.speech(startMessage, config.config_speech_ip);
 console.log("=================================================================");
-
-
 
 // ============== Serveur en mode websocket =================
 if(config.anythingllm.is_server){
@@ -345,25 +345,11 @@ if(config.anythingllm.is_server){
     ws.send('Hello from the server!');
   });
 }
-//==================================================
-
-/*
-// Open TOR configuration and open the port
-HiddenServiceDir Data\hidden_service
-HiddenServicePort 13080 127.0.0.1:13080
-HiddenServicePort 13443 127.0.0.1:13443
-HiddenServicePort 14080 127.0.0.1:14080
-*/
-
 
 // ============== Client websocket =================
 if(config.anythingllm.is_client){
-  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(message){
-    ws.send('Hello from the server!');
-  });
 
-
-  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(){
+  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(socket){
     console.log('WebSocket connection opened');
     socket.send('Hello from the client!');
   }), function(message, socket){
