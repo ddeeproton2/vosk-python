@@ -21,7 +21,7 @@ module.exports = {
     // Complete and faster
     //      https://lmstudio.ai/
     
-    config_jan_api: "http://192.168.1.45:1234/v1/chat/completions",
+    config_jan_api: "http://127.0.0.1:1234/v1/chat/completions",
 
     // Config for the Extensions Visual Studio: "EvalOnHTTP"
     //      https://github.com/ddeeproton2/vosk-python/tree/main/others/vscode_evalonhttp
@@ -37,6 +37,6 @@ module.exports = {
 
     // Config for Anything LLM
     //      https://useanything.com/
-    tor_anythingllm: 'ws://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:14080',
-    bearer: 'ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X'
+    tor_anythingllm: 'ws://your_tor_domain.onion:14080',
+    bearer: 'XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX'
 };
