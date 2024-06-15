@@ -1,4 +1,5 @@
 const fs = require('fs');
+const chokidar = require('chokidar');
 
 //========================================
 // Commands for files
@@ -55,6 +56,17 @@ class FilesManager {
   writeJSON(path, data) {
     const content = JSON.stringify(data, null, 2); // Formatage indenté
     this.writeFile(path, content);
+  }
+
+  watch_file_changes(filename, onchange){
+    // How to check change in a file
+    const watcher = chokidar.watch(filename, {
+      persistent: true,
+      ignoreInitial: true,
+    });
+    watcher.on('change', (path) => {
+      onchange(path);
+    });
   }
 }
 

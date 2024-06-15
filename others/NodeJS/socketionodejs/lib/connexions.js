@@ -301,8 +301,79 @@ class Connexions{
         });
     }
       
+    server_udp(bindAddress = '0.0.0.0', port = 41234, onmessage){
+        const dgram = require('dgram');
+        const server = dgram.createSocket('udp4');
+        server.on('message', (message, rinfo) => {
+            console.log(`Message recieved from ${rinfo.address}:${rinfo.port}: ${message}`);
+        });
+        server.bind(port, bindAddress);
+        console.log('Serveur UDP is listening on port '+port);
+    }
 
+    
 }
+
+// Maybe to do...
+/*
+//========================================
+// server-to-server connexions - MASTER
+//========================================
+const privateKey2 = fs.readFileSync(argv['ssl-key2'] || __dirname + '/SSL/http2/localhost-privkey.pem', 'utf8');
+const certificate2 = fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem', 'utf8');
+
+const server = http2.createSecureServer({
+  key: privateKey2,
+  cert: certificate2,
+});
+server.on('error', (err) => console.error(err));
+
+server.on('stream', (stream, headers, flags) => {
+    //const method = headers[':method'];
+    //const path = headers[':path'];
+    //console.log("path="+path);
+    console.log(headers.test);
+
+  // stream is a Duplex
+  stream.respond({
+    'content-type': 'text/html; charset=utf-8',
+    ':status': 200,
+  });
+  stream.end('it works');
+});
+
+server.listen(12443); 
+
+//========================================
+// server-to-server connexions - CLIENT
+//========================================
+
+const clientConnexion = http2.connect('https://localhost:12443', {
+  ca: fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem'),
+});
+clientConnexion.on('error', (err) => console.error(err));
+
+const client = clientConnexion.request({ ':path': '/','test':'cool' });
+
+client.on('response', (headers, flags) => {
+  for (const name in headers) {
+    //console.log(`${name}: ${headers[name]}`);
+  }
+});
+
+client.setEncoding('utf8');
+let data = '';
+client.on('data', (chunk) => { data += chunk; });
+client.on('end', () => {
+  console.log(`${data}`);
+  clientConnexion.close();
+});
+client.end(); 
+
+*/
+
+
+
 
 const internet = new Connexions();
 // Export variable

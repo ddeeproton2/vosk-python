@@ -77,23 +77,7 @@ const httpsServer = https.createServer(credentials, app);
 const ioHttps = socketIo(httpsServer);
 
 
-//==========================
-
 const allLocalIps = internet.getAllLocalIpAddresses();
-/*
-How to use:
-===========
-const allLocalIps = internet.getAllLocalIpAddresses();
-if (allLocalIps.length > 0) {
-  console.log('Adresses IP locales :');
-  allLocalIps.forEach(ip => console.log(ip));
-} else {
-  console.error('Impossible de trouver des adresses IP locales');
-}
-*/
-//==========================
-
-
 
 const users = [];
 
@@ -124,8 +108,6 @@ app.get('/gemini/openai.js', (req, res) => {
 app.get('/allwebsites/allwebsites.js', (req, res) => {
   res.sendFile(__dirname + '/WEB/allwebsites/allwebsites.js');
 });
-
-
 
 
 var onconnection = (socket) => {
@@ -183,13 +165,11 @@ var onconnection = (socket) => {
   // Gestion du message reçu du client dans un canal spécifique
   socket.on('sendtovoice', (msg, channel) => {
     console.log(`Message reçu dans le canal ${channel}: ${msg}`);
-
     /*
     internet.post("http://192.168.1.77:14080/spksay.py", {msg:encodeURIComponent(msg)}, function*(data) {
       console.log(`Données reçues : ${data}`);
     });
     */
-
     // Diffuser le message à tous les clients dans le canal spécifié
     //ioHttp.to(channel).emit('sendtovoice', msg, channel);
     //ioHttps.to(channel).emit('sendtovoice', msg, channel);
@@ -263,50 +243,18 @@ ioHttp.on('connection', onconnection);
 ioHttps.on('connection', onconnection);
 
 
-
-/*
-// How to check change in a file
-const watcher = chokidar.watch(voicefile, {
-  persistent: true,
-  ignoreInitial: true,
-});
-watcher.on('change', (path) => {
-  const speakvoice = fs.readFileSync(voicefile, 'utf-8'); 
-  console.log('Speak :');
-  console.log(speakvoice);
-  const channel = "speakvoice";
-  ioHttp.to(channel).emit('chat message', speakvoice, channel);
-  ioHttps.to(channel).emit('chat message', speakvoice, channel);
-});
-*/
-
-
 /*
 // How to send a request to Python server like here https://github.com/ddeeproton2/vosk-python
 app.get('/webresponse', (req, res) => {
   const name = req.query.getvarname;
   console.log(`name : ${name}`);
-  internet.post("http://127.0.0.1", req.query, function*(data) {
+  internet.post("http://127.0.0.1", req.query, function(data) {
     console.log(`Data recieved : ${data}`);
   
   });
   res.json({ result: 'ok' });
 });
 */
-
-// ========================
-
-/*
-// How to use a Server UDP
-const dgram = require('dgram');
-const server = dgram.createSocket('udp4');
-server.on('message', (message, rinfo) => {
-  console.log(`Message recieved from ${rinfo.address}:${rinfo.port}: ${message}`);
-});
-server.bind(41234, 'localhost'); // Set local port binding, or public '0.0.0.0'
-console.log('Serveur UDP is listening on port 41234');
-*/
-
 
 // ====================================
 
@@ -323,12 +271,7 @@ app.get('/speak', (req, res) => {
     res.json({ result: 'ok' });
 
     speakcommands.speak(msg, clientIPv4);
-    
-
 });
-
-
-
 
 // Configuration du middleware body-parser (because we read POST variables)
 app.use(bodyParser.json());
@@ -363,8 +306,6 @@ app.post('/speak', (req, res) => {
   res.send('Données POST reçues avec succès !');
 });
 
-
-
 httpServer.listen(argv['http-port'] || 13080, () => {
   console.log(`Node HTTP serving on:`);
   if (allLocalIps.length > 0) {
@@ -377,7 +318,6 @@ httpServer.listen(argv['http-port'] || 13080, () => {
 
 httpsServer.listen(argv['https-port'] || 13443, () => {
   console.log(`Node HTTPS serving on:`);
-  const allLocalIps = internet.getAllLocalIpAddresses();
   if (allLocalIps.length > 0) {
     allLocalIps.forEach(ip => console.log(`${ip}:${httpsServer.address().port}`));
   }
@@ -397,65 +337,6 @@ console.log("Say code, to ask something to the IA from the position of the curso
 console.log('You shoud hear this: "'+startMessage+'"');
 speakcommands.speech(startMessage, config.config_speech_ip);
 console.log("=================================================================");
-
-
-
-/*
-//========================================
-// server-to-server connexions - MASTER
-//========================================
-const privateKey2 = fs.readFileSync(argv['ssl-key2'] || __dirname + '/SSL/http2/localhost-privkey.pem', 'utf8');
-const certificate2 = fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem', 'utf8');
-
-const server = http2.createSecureServer({
-  key: privateKey2,
-  cert: certificate2,
-});
-server.on('error', (err) => console.error(err));
-
-server.on('stream', (stream, headers, flags) => {
-    //const method = headers[':method'];
-    //const path = headers[':path'];
-    //console.log("path="+path);
-    console.log(headers.test);
-
-  // stream is a Duplex
-  stream.respond({
-    'content-type': 'text/html; charset=utf-8',
-    ':status': 200,
-  });
-  stream.end('it works');
-});
-
-server.listen(12443); 
-
-//========================================
-// server-to-server connexions - CLIENT
-//========================================
-
-const clientConnexion = http2.connect('https://localhost:12443', {
-  ca: fs.readFileSync(argv['ssl-cert2'] || __dirname + '/SSL/http2/localhost-cert.pem'),
-});
-clientConnexion.on('error', (err) => console.error(err));
-
-const client = clientConnexion.request({ ':path': '/','test':'cool' });
-
-client.on('response', (headers, flags) => {
-  for (const name in headers) {
-    //console.log(`${name}: ${headers[name]}`);
-  }
-});
-
-client.setEncoding('utf8');
-let data = '';
-client.on('data', (chunk) => { data += chunk; });
-client.on('end', () => {
-  console.log(`${data}`);
-  clientConnexion.close();
-});
-client.end(); 
-
-*/
 
 
 
@@ -548,15 +429,15 @@ if(config.anythingllm.is_client){
 
   socket.on('message', (message) => {
 
-  // Handle message as UTF-8 encoded text (most common scenario)
-  if (typeof message === 'string') {
-    console.log('Received message from server:', message);
-  } else if (message instanceof Buffer) {
-    // Handle message as binary data if necessary
-    console.log('Received binary data from server:', message.toString('utf-8')); // Assuming UTF-8 encoding
-  } else {
-    console.warn('Received message from server in unknown format:', message);
-  }
+    // Handle message as UTF-8 encoded text (most common scenario)
+    if (typeof message === 'string') {
+      console.log('Received message from server:', message);
+    } else if (message instanceof Buffer) {
+      // Handle message as binary data if necessary
+      console.log('Received binary data from server:', message.toString('utf-8')); // Assuming UTF-8 encoding
+    } else {
+      console.warn('Received message from server in unknown format:', message);
+    }
 
   });
 }
