@@ -1,5 +1,3 @@
-
-
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 const express = require('express'); 
 const http = require('http');
@@ -27,13 +25,14 @@ var WebSocket = require('ws');
 const PGP = require('./lib/PGP.js');
 const dir = require('./lib/directoriesmanager.js');
 const file = require('./lib/filesmanager.js');
+const internet = require('./lib/connexions.js');
 
 //==========================
 
 function isWindowsOS() {
   return process.platform === 'win32';
 }
-
+ 
 // =========================
 /*
  Start an API TTS Server (application like here) :
@@ -55,6 +54,7 @@ function isWindowsOS() {
 let config_speech_ip = '192.168.1.52';
 //config_speech_ip = '192.168.1.56';
 //if(!isWindowsOS()){config_speech_ip = '127.0.0.1';}
+//config_speech_ip = '4gforg4fpgwi2r5wscqnx7jdj73jqjofykx5v75mxsloyad2zg67wpad.onion';
 //config_speech_ip = '127.0.0.1';
 let config_speech_port = '1225';
 //config_speech_port = '13443';
@@ -75,10 +75,6 @@ let config_jan_api = 'http://192.168.1.45:1234/v1/chat/completions';
 
 // =========================
 
-
-
-
-
 const app = express();
 const argv = yargs.argv;
 
@@ -98,166 +94,12 @@ const ioHttp = socketIo(httpServer);
 const httpsServer = https.createServer(credentials, app);
 const ioHttps = socketIo(httpsServer);
 
-/*
-// Serveur TOR
-const hostname = 'localhost';
-const port = 3000; // Choose an available port
-const server = http.createServer((req, res) => {
-  // Handle incoming request (e.g., parse data, perform actions)
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello from the server!');
-});
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-});
-*/
-
-
 
 //==================================
 // HTTP Client 
 //==================================
 //Use:
 //const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
-async function postTor(url, data, proxy = 'socks://127.0.0.1:9050') {
-
-  var Turl = require('url');
-  var opts = Turl.parse(url);
-  const urlEncodedData = new URLSearchParams(data).toString();
-
-  // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
-  opts.agent = agent;
-  opts.method = "POST";
-  opts.body = urlEncodedData;
-  /*
-  https.get(opts, function (res) {
-    console.log('"response" event!', res.headers);
-    res.pipe(process.stdout);
-  });
-  */
-
-  http.get(opts, function (res) {
-    console.log('"response" event!', res.headers);
-    res.pipe(process.stdout);
-  });
-
-}
-//Use:
-//const data = getTor('http://my_adress_tor.onion:13080/socket.io.js');
-async function getTor(url, proxy = 'socks://127.0.0.1:9050') {
-
-  var Turl = require('url');
-  var opts = Turl.parse(url);
-
-  // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
-  opts.agent = agent;
-  /*
-  https.get(opts, function (res) {
-    console.log('"response" event!', res.headers);
-    res.pipe(process.stdout);
-  });
-  */
-
-  http.get(opts, function (res) {
-    console.log('"response" event!', res.headers);
-    res.pipe(process.stdout);
-  });
-
-}
-
-
-
-
-async function post(url, data, options = {}) {
-
-  try {
-    const urlEncodedData = new URLSearchParams(data).toString();
-
-    const response = await fetch(url, {
-      method: 'POST',
-      // Set default headers for POST requests (can be overridden in options)
-      headers: {
-        //'Content-Type': 'application/json', // Example, adjust based on data format
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      // Add data to be sent in the request body
-      //body: JSON.stringify(data), // Assuming data is an object, adjust for other formats
-      body: urlEncodedData,
-      ...options, // Apply any additional options passed in
-    }).catch((error) => {
-      console.error(error); // Log the error
-    });
-
-    if (!response) {
-      console.log(`HTTP Error  ${url}`);
-
-      return "";
-    }
-    if (!response.ok) {
-      console.log(`HTTP Error: ${response.status}  ${url}`);
-      return "";
-    }
-
-    const contentType = response.headers.get('Content-Type');
-
-    // Handle response based on content type (similar to GET function)
-    if (contentType.includes('json')) {
-      return await response.json(); // Parse JSON response
-    } else if (contentType.includes('text')) {
-      return await response.text(); // Get response as text
-    } else {
-      // Handle other content types as needed
-      return await response.blob(); // Or another appropriate format
-    }
-  } catch (error) {
-    console.error('POST request error:', error);
-    //throw error; // Re-throw the error for further handling if needed
-  }
-}
-
-
-async function get(url, options = {}) {
-  //console.log('GET '+url);
-  //console.log('options');
-  //console.log(options);
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      ...options, // Apply any additional options passed in
-    }).catch((error) => {
-      // Your error is here!
-      console.log(error)
-    });
-
-    if (!response) {
-      console.log(`HTTP Error  ${url}`);
-      return "";
-    }
-    if (!response.ok) {
-      //throw new Error(`HTTP Error: ${response.status}`);
-      console.log(`HTTP Error: ${response.status}`);
-      return "";
-    }
-
-    const contentType = response.headers.get('Content-Type');
-
-    // Handle response based on content type
-    if (contentType.includes('json')) {
-      return await response.json(); // Parse JSON response
-    } else if (contentType.includes('text')) {
-      return await response.text(); // Get response as text
-    } else {
-      // Handle other content types as needed
-      return await response.blob(); // Or another appropriate format
-    }
-  } catch (error) {
-    console.error('GET request error:', error);
-    //throw error; // Re-throw the error for further handling if needed
-  }
-}
 
 
 //==================================
@@ -274,8 +116,9 @@ function speech(msg, clientIP){
       try {
         //const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
         //const data = await post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-        post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg), {}, function(data) {
+        internet.post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg), {}, function(data) {
           console.log(`Données reçues : ${data}`);
+        
         });
 
 
@@ -391,7 +234,7 @@ function ask(msg, onresult){
 function ask_anythinglm(msg, channel, onlydocuments, onresult){ 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX'
+    'Authorization': 'Bearer ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X'
   };
   var data = {
     "message": msg,
@@ -457,7 +300,7 @@ function ask_lmstudio(msg, onresult){
 
 // Send voice command to "EvalOnHTTP" (Visual Code - Extension)
 function vscode_execute_code(code){
-  post("http://127.0.0.1:4000", { code: code });
+  internet.post("http://127.0.0.1:4000", { code: code });
 }
 
 // Ask to this script a question to send to a LLM
@@ -480,59 +323,8 @@ function ask_vscode(msg, nodeserver){
 
 //==========================
 
-async function mysql_request(requete) {
-  try{
-    const connexion = mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'your_database'
-    });
-    const [result, fields] = await connexion.query(requete);
-    connexion.end();
-    // Result in a array
-    const returnData = result.map(line => {
-      const objectData = {};
-      for (let i = 0; i < fields.length; i++) {
-        objectData[fields[i].name] = line[i];
-      }
-      return objectData;
-    });
-  }catch(e){
-    console.log("Error MySQL connexion");
-    return;
-  }
-  // Retourner le tableau de données
-  return returnData;
-}
-
-/*
-// USE:
-mysql_request('SELECT * FROM ma_table')
-  .then(sql_result => {
-    console.log(sql_result);
-  })
-  .catch(errormsg => {
-    console.error(errormsg);
-  });
-*/
-
 //==========================
 
-
-function getLocalIpAddress() {
-  if(!isWindowsOS()){return '127.0.0.1';}
-  const interfaces = os.networkInterfaces();
-  for (const name in interfaces) {
-    const iface = interfaces[name];
-    for (const address of iface) {
-      if (address.family === 'IPv4' && !address.internal) {
-        return address.address;
-      }
-    }
-  }
-  return null;
-}
 
 
 
@@ -658,7 +450,7 @@ var onconnection = (socket) => {
     console.log(`Message reçu dans le canal ${channel}: ${msg}`);
 
 /*
-    post("http://192.168.1.77:14080/spksay.py", {msg:encodeURIComponent(msg)}, function*(data) {
+    internet.post("http://192.168.1.77:14080/spksay.py", {msg:encodeURIComponent(msg)}, function*(data) {
       console.log(`Données reçues : ${data}`);
     });
 */
@@ -761,7 +553,7 @@ watcher.on('change', (path) => {
 app.get('/webresponse', (req, res) => {
   const name = req.query.getvarname;
   console.log(`name : ${name}`);
-  post("http://127.0.0.1", req.query, function*(data) {
+  internet.post("http://127.0.0.1", req.query, function*(data) {
     console.log(`Data recieved : ${data}`);
   
   });
@@ -981,7 +773,7 @@ class VisualCodeCommands{
     this.self.currentMode = "";
     console.log("Lancement du code");
     speech("Veuillez patienter. Je réfléchis à votre question. ", this.clientIPv4);
-    ask_vscode(msg, getLocalIpAddress()+':'+httpServer.address().port);
+    ask_vscode(msg, internet.getLocalIpAddress()+':'+httpServer.address().port);
   }
   
 }
@@ -1658,7 +1450,7 @@ app.get('/speak', (req, res) => {
       return;
     }
     if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || vc.isCommand('editeur', msg)){
-      editor = new Editor(clientIPv4, getLocalIpAddress()+':'+httpServer.address().port, vc);
+      editor = new Editor(clientIPv4, internet.getLocalIpAddress()+':'+httpServer.address().port, vc);
       editor.start();
       return;
     }
@@ -1732,7 +1524,7 @@ httpServer.listen(argv['http-port'] || 13080, () => {
   } else {
     console.error('No local ip found');
   }
-  //console.log(`Server HTTP listening `+getLocalIpAddress()+`:${httpServer.address().port}`);
+  //console.log(`Server HTTP listening `+internet.getLocalIpAddress()+`:${httpServer.address().port}`);
 });
 
 httpsServer.listen(argv['https-port'] || 13443, () => {
@@ -1741,7 +1533,7 @@ httpsServer.listen(argv['https-port'] || 13443, () => {
   if (allLocalIps.length > 0) {
     allLocalIps.forEach(ip => console.log(`${ip}:${httpsServer.address().port}`));
   }
-  //console.log(`Server node HTTPS listening `+getLocalIpAddress()+`:${httpsServer.address().port}`);
+  //console.log(`Server node HTTPS listening `+internet.getLocalIpAddress()+`:${httpsServer.address().port}`);
 });
 
 
@@ -1887,7 +1679,8 @@ var proxy = 'socks://127.0.0.1:9050';
 console.log('using proxy server %j', proxy);
 
 // WebSocket endpoint for the proxy to connect to
-var endpoint = 'ws://your_address_tor.onion:14080';
+var endpoint = 'ws://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:14080';
+//var endpoint = 'ws://your_address_tor.onion:14080';
 console.log('attempting to connect to WebSocket %j', endpoint);
 
 // create an instance of the `SocksProxyAgent` class with the proxy server information
