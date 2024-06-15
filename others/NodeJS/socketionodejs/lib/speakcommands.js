@@ -852,154 +852,195 @@ class MainSpeakCommands{
         this.visual = new VisualCodeCommands(config.config_speech_ip, this.vc);
         this.questionllm = new QuestionToLLM(config.config_speech_ip, this.vc);
     }
+    speech(msg, clientIP){
+        //console.log("To "+clientIP+" Say "+msg);
+        if(clientIP === undefined){console.log("Error: clientIP not defined :)");return;}
+        try {  
+          (async () => {
+            try {
+              //const data = await get('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+              //const data = await post('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+              internet.speech('http://'+clientIP+':'+config.config_speech_port+'/?message=', msg, {}, function(data) {
+                console.log(`Données reçues : ${data}`);
+              });
+      
+      
+              //console.log(data); // Output: Parsed data (JSON, text, etc.)
+            } catch (error) {
+              console.error('Error fetching data:', error);
+            }
+          })();
+          
+        } catch (error) {
+          console.error('GET request error:', error);
+          //throw error; // Re-throw the error for further handling if needed
+        }
+      
+    }
+    spell(msg, clientIP) {
+        let newmsg = "";
+        for (let i = 0; i < msg.length; i++) {
+          newmsg = newmsg.concat("§" + msg.charAt(i));
+        }
+        newmsg = char_to_word(newmsg);
+        newmsg = newmsg.replaceAll("§", ". ");
+        speech(newmsg, clientIP);
+    }
+    ask(msg, onresult){ 
+        internet.ask_lmstudio(msg, onresult);
+        internet.ask_anythinglm(msg, "general", false, onresult, config.anythingllm.bearer);
+        internet.ask_anythinglm(msg, "nodejs", true, onresult, config.anythingllm.bearer);
+    }
+      
+
     speak(msg, clientIPv4){
 
-    // ===================
-    if(this.vc.typeSpeak === "alphabet" || this.vc.typeSpeak === "numeric"){
-        if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
-          if(this.questionllm.spelling !== ""){
-            this.vc.typeSpeak = "";
-            if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-              if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
-                this.questionllm.old.push(this.questionllm.question);
-              }
-              this.questionllm.question += this.questionllm.spelling + " ";
-              speech(this.questionllm.question, clientIPv4);
+        // ===================
+        if(this.vc.typeSpeak === "alphabet" || this.vc.typeSpeak === "numeric"){
+            if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
+            if(this.questionllm.spelling !== ""){
+                this.vc.typeSpeak = "";
+                if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
+                    this.questionllm.old.push(this.questionllm.question);
+                }
+                this.questionllm.question += this.questionllm.spelling + " ";
+                speech(this.questionllm.question, clientIPv4);
+                }
+            }else{
+                speech("Pas de caractère dicté", clientIPv4);
             }
-          }else{
-            speech("Pas de caractère dicté", clientIPv4);
-          }
-          return;
+            return;
+            }
+            if(["répète"].indexOf(msg) !== -1){
+            if(this.questionllm.spelling === ""){
+                speech("Pas de caractère en mémoire à répéter", clientIPv4);
+            }else{
+                speech(this.questionllm.spelling, clientIPv4);
+            }
+            return;
+            }
+            if(["non"].indexOf(msg) !== -1){
+            if(this.questionllm.spelling_old.length == 0 || this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1] === ""){
+                speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
+                questionllm.spelling = "";
+            }else{
+                speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
+                this.questionllm.spelling = this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1];
+                this.questionllm.spelling_old.pop(); // remove last item
+            }
+            return;
+            }
         }
-        if(["répète"].indexOf(msg) !== -1){
-          if(this.questionllm.spelling === ""){
-            speech("Pas de caractère en mémoire à répéter", clientIPv4);
-          }else{
+        if(this.vc.typeSpeak === "alphabet"){
+            if(this.vc.isCommandAlphabet(msg)){
+            if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                this.questionllm.spelling_old.push(this.questionllm.spelling);
+            }
+            this.questionllm.spelling += this.vc.getCommandNumeric(msg);
             speech(this.questionllm.spelling, clientIPv4);
-          }
-          return;
+            }
+            return;
         }
-        if(["non"].indexOf(msg) !== -1){
-          if(this.questionllm.spelling_old.length == 0 || this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1] === ""){
-            speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
-            questionllm.spelling = "";
-          }else{
-            speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
-            this.questionllm.spelling = this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1];
-            this.questionllm.spelling_old.pop(); // remove last item
-          }
-          return;
+        if(this.vc.typeSpeak === "numeric"){
+            if(this.vc.isCommandNumeric(msg)){
+            if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                this.questionllm.spelling_old.push(this.questionllm.spelling);
+            }
+            this.questionllm.spelling += vc.getCommandNumeric(msg);
+            speech(this.questionllm.spelling, clientIPv4);
+            }
+            return;
         }
-      }
-      if(this.vc.typeSpeak === "alphabet"){
-        if(this.vc.isCommandAlphabet(msg)){
-          if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-            this.questionllm.spelling_old.push(this.questionllm.spelling);
-          }
-          this.questionllm.spelling += this.vc.getCommandNumeric(msg);
-          speech(this.questionllm.spelling, clientIPv4);
+        if(["dictée lettres"].indexOf(msg) !== -1){
+            this.vc.typeSpeak = "alphabet";
+            this.questionllm.spelling = "";
+            this.questionllm.spelling_old = [];
+            return;
         }
-        return;
-      }
-      if(this.vc.typeSpeak === "numeric"){
-        if(this.vc.isCommandNumeric(msg)){
-          if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-            this.questionllm.spelling_old.push(this.questionllm.spelling);
-          }
-          this.questionllm.spelling += vc.getCommandNumeric(msg);
-          speech(this.questionllm.spelling, clientIPv4);
+        if(["dictée chiffres","dites chiffres","zut ce chiffre"].indexOf(msg) !== -1){
+            this.vc.typeSpeak = "numeric";
+            this.questionllm.spelling = "";
+            this.questionllm.spelling_old = [];
+            return;
         }
-        return;
-      }
-      if(["dictée lettres"].indexOf(msg) !== -1){
-        this.vc.typeSpeak = "alphabet";
-        this.questionllm.spelling = "";
-        this.questionllm.spelling_old = [];
-        return;
-      }
-      if(["dictée chiffres","dites chiffres","zut ce chiffre"].indexOf(msg) !== -1){
-        this.vc.typeSpeak = "numeric";
-        this.questionllm.spelling = "";
-        this.questionllm.spelling_old = [];
-        return;
-      }
-      // =================== Ask LLM
-      if(this.vc.currentMode == "question"){
-        this.questionllm.add(msg);
-        return;
-      }
-      if(this.vc.isCommand('question', msg)){
-        this.questionllm.clientIPv4 = clientIPv4;
-        this.questionllm.start();
-        return;
-      }
-  
-  
-      // =================== Ask LLM for Visual Studio
-      if(this.vc.currentMode == "question_vscode"){
-        this.visual.ask(msg);
-        return;
-      }
-      if(this.vc.isCommand('vscode', msg)){
-        this.visual.clientIPv4 = clientIPv4;
-        this.visual.start();
-        return;
-      }
-      // =================== Learning Bases
-      if(this.vc.currentMode == "learning_command"){
-        this.learning_command.learn(msg);
-        return; 
-      }
-      if(['apprendre commande'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_commande', msg)){
-        this.learning_command.clientIPv4 = clientIPv4;
-        this.learning_command.start();
-        return;
-      }
-      // =================== Learning Numbers
-      if(this.vc.currentMode == "learning_numbers"){
-        this.learning_numbers.learn(msg);
-        return;
-      }
-      if(['apprendre chiffres'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_chiffres', msg)){
-        this.learning_numbers.clientIPv4 = clientIPv4;
-        this.learning_numbers.start();
-        return;
-      }
-      // =================== Learning Chars
-      if(this.vc.currentMode == "learning_chars"){
-        this.learning_chars.learn(msg);
-        return;
-      }
-      if(['apprendre lettre',"apprends de l'être"].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_lettres', msg)){
-        this.learning_chars.clientIPv4 = clientIPv4;
-        this.learning_chars.start();
-        return;
-      }
-      // =================== Editeur vscode
-      if(this.vc.currentMode == "editeur"){
-        this.editor.work(msg);
-        return;
-      }
-      if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg)){
-        this.editor.clientIPv4 = clientIPv4;
-        this.editor.nodeserver = internet.getLocalIpAddress()+':'+httpServer.address().port;
-        this.editor.start();
-        return;
-      }
-      // =================== Last commands (must be at the end)
-      if(this.vc.isCommand('repeter', msg)){
-        speech(startMessage, clientIPv4);
-        return;
-      }
-  
-      if(['test',"testé","tester"].indexOf(msg) !== -1){
-        this.tester();
-      }
+        // =================== Ask LLM
+        if(this.vc.currentMode == "question"){
+            this.questionllm.add(msg);
+            return;
+        }
+        if(this.vc.isCommand('question', msg)){
+            this.questionllm.clientIPv4 = clientIPv4;
+            this.questionllm.start();
+            return;
+        }
+    
+    
+        // =================== Ask LLM for Visual Studio
+        if(this.vc.currentMode == "question_vscode"){
+            this.visual.ask(msg);
+            return;
+        }
+        if(this.vc.isCommand('vscode', msg)){
+            this.visual.clientIPv4 = clientIPv4;
+            this.visual.start();
+            return;
+        }
+        // =================== Learning Bases
+        if(this.vc.currentMode == "learning_command"){
+            this.learning_command.learn(msg);
+            return; 
+        }
+        if(['apprendre commande'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_commande', msg)){
+            this.learning_command.clientIPv4 = clientIPv4;
+            this.learning_command.start();
+            return;
+        }
+        // =================== Learning Numbers
+        if(this.vc.currentMode == "learning_numbers"){
+            this.learning_numbers.learn(msg);
+            return;
+        }
+        if(['apprendre chiffres'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_chiffres', msg)){
+            this.learning_numbers.clientIPv4 = clientIPv4;
+            this.learning_numbers.start();
+            return;
+        }
+        // =================== Learning Chars
+        if(this.vc.currentMode == "learning_chars"){
+            this.learning_chars.learn(msg);
+            return;
+        }
+        if(['apprendre lettre',"apprends de l'être"].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_lettres', msg)){
+            this.learning_chars.clientIPv4 = clientIPv4;
+            this.learning_chars.start();
+            return;
+        }
+        // =================== Editeur vscode
+        if(this.vc.currentMode == "editeur"){
+            this.editor.work(msg);
+            return;
+        }
+        if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg)){
+            this.editor.clientIPv4 = clientIPv4;
+            this.editor.nodeserver = internet.getLocalIpAddress()+':'+httpServer.address().port;
+            this.editor.start();
+            return;
+        }
+        // =================== Last commands (must be at the end)
+        if(this.vc.isCommand('repeter', msg)){
+            speech(startMessage, clientIPv4);
+            return;
+        }
+    
+        if(['test',"testé","tester"].indexOf(msg) !== -1){
+            this.tester();
+        }
 
-      return;
-      questionllm = new QuestionToLLM(clientIPv4, vc);
-      questionllm.start();
-      questionllm.add(msg);
+        return;
+        questionllm = new QuestionToLLM(clientIPv4, vc);
+        questionllm.start();
+        questionllm.add(msg);
 
     }
     tester(){

@@ -76,61 +76,6 @@ const ioHttp = socketIo(httpServer);
 const httpsServer = https.createServer(credentials, app);
 const ioHttps = socketIo(httpsServer);
 
-//==================================
-// utils functions 
-//==================================
-
-// This function is for Text To Speech (TTS)
-function speech(msg, clientIP){
-  //console.log("To "+clientIP+" Say "+msg);
-  if(clientIP === undefined){console.log("Error: clientIP not defined :)");return;}
-  try {  
-    (async () => {
-      try {
-        //const data = await get('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
-        //const data = await post('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
-        internet.speech('http://'+clientIP+':'+config.config_speech_port+'/?message=', msg, {}, function(data) {
-          console.log(`Données reçues : ${data}`);
-        });
-
-
-        //console.log(data); // Output: Parsed data (JSON, text, etc.)
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    })();
-    
-  } catch (error) {
-    console.error('GET request error:', error);
-    //throw error; // Re-throw the error for further handling if needed
-  }
-
-}
-
-
-function spell(msg, clientIP) {
-  let newmsg = "";
-  for (let i = 0; i < msg.length; i++) {
-    newmsg = newmsg.concat("§" + msg.charAt(i));
-  }
-  newmsg = char_to_word(newmsg);
-  newmsg = newmsg.replaceAll("§", ". ");
-  speech(newmsg, clientIP);
-}
-
-
-
-// This function is an API for this application LLM https://github.com/janhq/jan
-// See how to use it when the server API is started http://127.0.0.1:1337/static/index.html
-function ask(msg, onresult){ 
-  internet.ask_lmstudio(msg, onresult);
-  internet.ask_anythinglm(msg, "general", false, onresult, config.anythingllm.bearer);
-  internet.ask_anythinglm(msg, "nodejs", true, onresult, config.anythingllm.bearer);
-}
-
-
- 
-
 
 //==========================
 
@@ -392,12 +337,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/ask', (req, res) => {
   const msg = req.body.msg;
   console.log(`ask msg : ${msg}`);
-  speech(msg, config.config_speech_ip);
-  ask(msg, function(result){
+  speakcommands.speech(msg, config.config_speech_ip);
+  speakcommands.ask(msg, function(result){
       console.log("Réponse");
       console.log(result);
       //result = result.replaceAll("*","");
-      speech(result, config.config_speech_ip);
+      speakcommands.speech(result, config.config_speech_ip);
   });
 
   res.send('Données POST reçues avec succès !');
@@ -407,14 +352,14 @@ app.post('/ask', (req, res) => {
 app.post('/spell', (req, res) => {
   const msg = req.body.msg;
   console.log(`spell msg : ${msg}`);
-  spell(msg, config.config_speech_ip);
+  speakcommands.spell(msg, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
 });
 
 app.post('/speak', (req, res) => {
   const msg = req.body.msg;
   console.log(`speak msg : ${msg}`);
-  speech(msg, config.config_speech_ip);
+  speakcommands.speech(msg, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
 });
 
@@ -450,7 +395,7 @@ console.log("Say question, to ask something to the IA");
 console.log("Say code, to ask something to the IA from the position of the cursor in VSCode editor");
 // We should hear the text here if both servers are started
 console.log('You shoud hear this: "'+startMessage+'"');
-speech(startMessage, config.config_speech_ip);
+speakcommands.speech(startMessage, config.config_speech_ip);
 console.log("=================================================================");
 
 
@@ -597,8 +542,8 @@ if(config.anythingllm.is_client){
   });
 
   socket.on('open', () => {
-  console.log('WebSocket connection opened');
-  socket.send('Hello from the client!');
+    console.log('WebSocket connection opened');
+    socket.send('Hello from the client!');
   });
 
   socket.on('message', (message) => {
