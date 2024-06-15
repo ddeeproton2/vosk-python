@@ -1,3 +1,4 @@
+// How to start
 //node app.js --https-port 13443 --http-port 13080 --ssl-key SSL/private-key.pem --ssl-cert SSL/certificate.pem --ssl-ca SSL/ca.pem
 const express = require('express'); 
 const http = require('http');
@@ -12,27 +13,18 @@ const mysql = require('mysql');
 const os = require('os');
 const path = require('path');
 const http2 = require('node:http2');
-
-//const Agent = require('socks5-http-client/lib/Agent');
 const request = require('request');
 
-//var urlpath = require('url');
-//var shttp = require('socks5-http-client');
 
 const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
-var WebSocket = require('ws');
+const WebSocket = require('ws');
 
 const PGP = require('./lib/PGP.js');
 const dir = require('./lib/directoriesmanager.js');
 const file = require('./lib/filesmanager.js');
 const internet = require('./lib/connexions.js');
+const config = require('./config.js');
 
-//==========================
-
-function isWindowsOS() {
-  return process.platform === 'win32';
-}
- 
 // =========================
 /*
  Start an API TTS Server (application like here) :
@@ -51,39 +43,30 @@ function isWindowsOS() {
       Like here:
         %python% assistant.py --micro-device 0 --python-onload "build/roms/init.py" --python-onlistening "build/roms/start.py" --playsound-onstartspeaking %onstart%  --playsound-onendspeaking %onend% --speaker-server 0.0.0.0:7979 --micro-model "model/vosk-model-small-fr-0.22" 
 */
-let config_speech_ip = '192.168.1.52';
-//config_speech_ip = '192.168.1.56';
-//if(!isWindowsOS()){config_speech_ip = '127.0.0.1';}
-//config_speech_ip = '4gforg4fpgwi2r5wscqnx7jdj73jqjofykx5v75mxsloyad2zg67wpad.onion';
-//config_speech_ip = '127.0.0.1';
-let config_speech_port = '1225';
-//config_speech_port = '13443';
 
 // =========================
 /*
  Link with a Language Large Model (LLM) to speak with voice vocal
 
  Jan:
-      https://github.com/janhq/jan
+    https://github.com/janhq/jan
 
  LM Studio
-      https://lmstudio.ai/
+    https://lmstudio.ai/
 
+  Anything LLM
+    https://useanything.com
 */
 
-let config_jan_api = 'http://192.168.1.45:1234/v1/chat/completions';
 
 // =========================
 
 const app = express();
 const argv = yargs.argv;
-
 const voicefile = __dirname + '/DATA/voice.json';
-// Charger les certificats SSL (remplacez les chemins par les vôtres)
 const privateKey = fs.readFileSync(argv['ssl-key'] || __dirname + '/SSL/private-key.pem', 'utf8');
 const certificate = fs.readFileSync(argv['ssl-cert'] || __dirname + '/SSL/certificate.pem', 'utf8');
 const ca = fs.readFileSync(argv['ssl-ca'] || __dirname + '/SSL/ca.pem', 'utf8');
-
 const credentials = { key: privateKey, cert: certificate, ca: ca };
 
 // Serveur HTTP
@@ -96,15 +79,8 @@ const ioHttps = socketIo(httpsServer);
 
 
 //==================================
-// HTTP Client 
-//==================================
-//Use:
-//const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
-
-
-//==================================
 // utils functions 
-//==========================
+//==================================
 
 
 // This function is for Text To Speech (TTS)
@@ -114,11 +90,10 @@ function speech(msg, clientIP){
   try {  
     (async () => {
       try {
-        //const data = await get('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-        //const data = await post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg));
-        internet.post('http://'+clientIP+':'+config_speech_port+'/?message='+encodeURIComponent(msg), {}, function(data) {
+        //const data = await get('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+        //const data = await post('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+        internet.speech('http://'+clientIP+':'+config.config_speech_port+'/?message=', msg, {}, function(data) {
           console.log(`Données reçues : ${data}`);
-        
         });
 
 
@@ -134,6 +109,8 @@ function speech(msg, clientIP){
   }
 
 }
+
+
 
 function char_to_word(msg){
   msg = msg.replaceAll(" ", " espace ");
@@ -227,80 +204,19 @@ function spell(msg, clientIP) {
 // This function is an API for this application LLM https://github.com/janhq/jan
 // See how to use it when the server API is started http://127.0.0.1:1337/static/index.html
 function ask(msg, onresult){ 
-  ask_lmstudio(msg, onresult);
+  internet.ask_lmstudio(msg, onresult);
+  internet.ask_anythinglm(msg, "general", false, onresult, config.bearer);
+  internet.ask_anythinglm(msg, "nodejs", true, onresult, config.bearer);
 }
 
 
-function ask_anythinglm(msg, channel, onlydocuments, onresult){ 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X'
-  };
-  var data = {
-    "message": msg,
-    "mode": onlydocuments === true ? "query" : "chat"
-  };
-
-  axios.post("http://localhost:3001/api/v1/workspace/"+channel+"/chat", data, { headers })
-  .then(response => {
-      try{
-          //console.log(response); 
-          onresult(response.data.textResponse);
-      }catch(e){
-        console.error(e); 
-      }
-  })
-  .catch(error => {
-    console.error(error); 
-  });
-}
+ 
 
 
-function ask_lmstudio(msg, onresult){ 
-  axios.defaults.timeout = 0;
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  const data = {
-    messages: [
-      {
-        role: "user",
-        content: msg
-      }
-    ],
-    model: "mistral-ins-7b-q4/Repository",
-    //model: "mistral-ins-7b-q4",
-    //model: "stable-zephyr-3b",
-    //model: "deepseek-coder-1.3b",
-    stream: false,
-    //max_tokens: 2048,
-    max_tokens: 32768,
-    "stop": [
-      "st0ph3r3"
-    ],
-    frequency_penalty: 0.7,
-    presence_penalty: 0,
-    temperature: 0.7,
-    top_p: 0.95
-  };
-  console.log(msg);
-  axios.post(config_jan_api, data, { headers })
-  .then(response => {
-      try{
-          let msg = response.data.choices[0].message.content
-          //console.log(msg);
-          onresult(msg);
-      }catch(e){}
-
-  })
-  .catch(error => {
-    console.error(error); 
-  });
-}
 
 // Send voice command to "EvalOnHTTP" (Visual Code - Extension)
 function vscode_execute_code(code){
-  internet.post("http://127.0.0.1:4000", { code: code });
+  internet.post(config.vs_code_eval, { code: code });
 }
 
 // Ask to this script a question to send to a LLM
@@ -323,32 +239,11 @@ function ask_vscode(msg, nodeserver){
 
 //==========================
 
-//==========================
-
-
-
-
-//==========================
-
-function getAllLocalIpAddresses() {
-  if(!isWindowsOS()){return ['127.0.0.1'];}
-  const addresses = [];
-  const interfaces = os.networkInterfaces();
-  for (const name in interfaces) {
-    const iface = interfaces[name];
-    for (const address of iface) {
-      if (address.family === 'IPv4' && !address.internal) {
-        addresses.push(address.address);
-      }
-    }
-  }
-  return addresses;
-}
-const allLocalIps = getAllLocalIpAddresses();
+const allLocalIps = internet.getAllLocalIpAddresses();
 /*
 How to use:
 ===========
-const allLocalIps = getAllLocalIpAddresses();
+const allLocalIps = internet.getAllLocalIpAddresses();
 if (allLocalIps.length > 0) {
   console.log('Adresses IP locales :');
   allLocalIps.forEach(ip => console.log(ip));
@@ -449,11 +344,11 @@ var onconnection = (socket) => {
   socket.on('sendtovoice', (msg, channel) => {
     console.log(`Message reçu dans le canal ${channel}: ${msg}`);
 
-/*
+    /*
     internet.post("http://192.168.1.77:14080/spksay.py", {msg:encodeURIComponent(msg)}, function*(data) {
       console.log(`Données reçues : ${data}`);
     });
-*/
+    */
 
     // Diffuser le message à tous les clients dans le canal spécifié
     //ioHttp.to(channel).emit('sendtovoice', msg, channel);
@@ -480,12 +375,10 @@ var onconnection = (socket) => {
   });
 
   socket.on('emittogethttpserver',(from, to, value) => {
-    
     console.log(`${from} ${to} ${value}`);
-
     (async () => {
       try {
-        const data = await get('http://192.168.1.57:1225/?message='+encodeURIComponent(value));
+        const data = await get('http://'+config.config_speech_ip+':'+config.config_speech_port+'/?message='+encodeURIComponent(value));
         console.log(data); // Output: Parsed data (JSON, text, etc.)
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -755,7 +648,7 @@ class QuestionToLLM {
     this.old = [];
   }
 }
-var questionllm = new QuestionToLLM('127.0.0.1', vc);
+var questionllm = new QuestionToLLM(config.config_speech_ip, vc);
 
 
 // ====================================
@@ -777,7 +670,7 @@ class VisualCodeCommands{
   }
   
 }
-var visual = new VisualCodeCommands('127.0.0.1', vc);
+var visual = new VisualCodeCommands(config.config_speech_ip, vc);
 
 // ====================================
 
@@ -878,7 +771,7 @@ class LearningCommand{
     }
   }
 }
-var learning_command = new LearningCommand('127.0.0.1', vc);
+var learning_command = new LearningCommand(config.config_speech_ip, vc);
 
 // ====================================
 
@@ -944,7 +837,7 @@ class LearnNumbers{
   }
 }
 
-var learning_numbers = new LearnNumbers('127.0.0.1', vc);
+var learning_numbers = new LearnNumbers(config.config_speech_ip, vc);
 
 // ====================================
 // ====================================
@@ -1016,7 +909,7 @@ class LearnChars{
   }
 }
 
-var learning_chars = new LearnChars('127.0.0.1', vc);
+var learning_chars = new LearnChars(config.config_speech_ip, vc);
 // ====================================
 // ====================================
 
@@ -1276,7 +1169,7 @@ class Editor{
     `);
   }
 }
-var editor = new Editor('127.0.0.1', '127.0.0.1', vc);
+var editor = new Editor(config.config_speech_ip, config.nodeserver, vc);
 
 /*
 // ====================================
@@ -1292,7 +1185,7 @@ class SpellNumbers{
   }
 }
 
-var spellnumbers = new SpellNumbers('127.0.0.1', vc);
+var spellnumbers = new SpellNumbers(config.config_speech_ip, vc);
 
 // ====================================
 
@@ -1307,7 +1200,7 @@ class SpellAlphabetic{
   }
 }
 
-var spellalphabetic = new SpellAlphabetic('127.0.0.1', vc);
+var spellalphabetic = new SpellAlphabetic(config.config_speech_ip, vc);
 */
 
 // ====================================
@@ -1489,12 +1382,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/ask', (req, res) => {
   const msg = req.body.msg;
   console.log(`ask msg : ${msg}`);
-  speech(msg, config_speech_ip);
+  speech(msg, config.config_speech_ip);
   ask(msg, function(result){
       console.log("Réponse");
       console.log(result);
       //result = result.replaceAll("*","");
-      speech(result, config_speech_ip);
+      speech(result, config.config_speech_ip);
   });
 
   res.send('Données POST reçues avec succès !');
@@ -1504,14 +1397,14 @@ app.post('/ask', (req, res) => {
 app.post('/spell', (req, res) => {
   const msg = req.body.msg;
   console.log(`spell msg : ${msg}`);
-  spell(msg, config_speech_ip);
+  spell(msg, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
 });
 
 app.post('/speak', (req, res) => {
   const msg = req.body.msg;
   console.log(`speak msg : ${msg}`);
-  speech(msg, config_speech_ip);
+  speech(msg, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
 });
 
@@ -1529,7 +1422,7 @@ httpServer.listen(argv['http-port'] || 13080, () => {
 
 httpsServer.listen(argv['https-port'] || 13443, () => {
   console.log(`Node HTTPS serving on:`);
-  const allLocalIps = getAllLocalIpAddresses();
+  const allLocalIps = internet.getAllLocalIpAddresses();
   if (allLocalIps.length > 0) {
     allLocalIps.forEach(ip => console.log(`${ip}:${httpsServer.address().port}`));
   }
@@ -1547,7 +1440,7 @@ console.log("Say question, to ask something to the IA");
 console.log("Say code, to ask something to the IA from the position of the cursor in VSCode editor");
 // We should hear the text here if both servers are started
 console.log('You shoud hear this: "'+startMessage+'"');
-speech(startMessage, config_speech_ip);
+speech(startMessage, config.config_speech_ip);
 console.log("=================================================================");
 
 
@@ -1675,19 +1568,14 @@ HiddenServicePort 14080 127.0.0.1:14080
 // ============== Client websocket =================
 
 // SOCKS proxy to connect to
-var proxy = 'socks://127.0.0.1:9050';
-console.log('using proxy server %j', proxy);
-
-// WebSocket endpoint for the proxy to connect to
-var endpoint = 'ws://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:14080';
-//var endpoint = 'ws://your_address_tor.onion:14080';
-console.log('attempting to connect to WebSocket %j', endpoint);
+console.log('using proxy server %j', config.tor_server);
+console.log('attempting to connect to WebSocket %j', config.tor_anythingllm);
 
 // create an instance of the `SocksProxyAgent` class with the proxy server information
-var agent = new SocksProxyAgent.SocksProxyAgent(proxy);
+var agent = new SocksProxyAgent.SocksProxyAgent(config.tor_server);
 
 // initiate the WebSocket connection
-var socket = new WebSocket(endpoint, { 
+var socket = new WebSocket(config.tor_anythingllm, { 
 agent: agent,
 perMessageDeflate: false
 });
