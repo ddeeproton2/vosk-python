@@ -1,10 +1,13 @@
 var Turl = require('url');
+const os = require('os');
 
 class Connexions{
     constructor(){
 
     }
-    async postTor(url, data, options = {}) {
+//Use:
+//const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
+    async postTor(url, data) {
         var opts = Turl.parse(url);
         const urlEncodedData = new URLSearchParams(data).toString();
         
@@ -25,7 +28,9 @@ class Connexions{
             res.pipe(process.stdout);
         });
     }
-    async getTor(url, options = {}) {
+
+
+    async getTor(url) {
 
         var Turl = require('url');
         var opts = Turl.parse(url);
@@ -187,9 +192,116 @@ class Connexions{
           }
         }
         return null;
-      }
+    }
       
+    getAllLocalIpAddresses() {
+        if(!this.isWindowsOS()){return ['127.0.0.1'];}
+        const addresses = [];
+        const interfaces = os.networkInterfaces();
+        for (const name in interfaces) {
+          const iface = interfaces[name];
+          for (const address of iface) {
+            if (address.family === 'IPv4' && !address.internal) {
+              addresses.push(address.address);
+            }
+          }
+        }
+        return addresses;
+    }
+    
+    isWindowsOS() {
+        return process.platform === 'win32';
+    }
+
+    speech(url, msg){
+        try {  
+          (async () => {
+            try {
+                this.post(url+encodeURIComponent(msg), {}, function(data) {
+                    console.log(`Données reçues : ${data}`);
+                });
+                //console.log(data); // Output: Parsed data (JSON, text, etc.)
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+          })();
+        } catch (error) {
+            console.error('GET request error:', error);
+            //throw error; // Re-throw the error for further handling if needed
+        }
       
+    }
+
+
+    ask_lmstudio(msg, onresult, model = "mistral-ins-7b-q4/Repository", max_tokens = 32768){ 
+        axios.defaults.timeout = 0;
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        const data = {
+          messages: [
+            {
+              role: "user",
+              content: msg
+            }
+          ],
+          model: model,
+          //model: "mistral-ins-7b-q4",
+          //model: "stable-zephyr-3b",
+          //model: "deepseek-coder-1.3b",
+          stream: false,
+          //max_tokens: 2048,
+          max_tokens: max_tokens,
+          "stop": [
+            "st0ph3r3"
+          ],
+          frequency_penalty: 0.7,
+          presence_penalty: 0,
+          temperature: 0.7,
+          top_p: 0.95
+        };
+        console.log(msg);
+        axios.post(config.config_jan_api, data, { headers })
+        .then(response => {
+            try{
+                let msg = response.data.choices[0].message.content
+                //console.log(msg);
+                onresult(msg);
+            }catch(e){}
+      
+        })
+        .catch(error => {
+          console.error(error); 
+        });
+    }
+
+
+    // Bearer is in config.bearer
+    ask_anythinglm(msg, channel, onlydocuments, onresult, bearer){ 
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer '+bearer
+        };
+        var data = {
+          "message": msg,
+          "mode": onlydocuments === true ? "query" : "chat"
+        };
+      
+        axios.post("http://localhost:3001/api/v1/workspace/"+channel+"/chat", data, { headers })
+        .then(response => {
+            try{
+                //console.log(response); 
+                onresult(response.data.textResponse);
+            }catch(e){
+              console.error(e); 
+            }
+        })
+        .catch(error => {
+          console.error(error); 
+        });
+    }
+      
+
 }
 
 const internet = new Connexions();
