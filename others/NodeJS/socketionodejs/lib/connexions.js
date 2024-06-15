@@ -1,12 +1,16 @@
-var Turl = require('url');
+const Turl = require('url');
 const os = require('os');
+const WebSocket = require('ws');
+const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
+
+
 
 class Connexions{
     constructor(){
 
     }
-//Use:
-//const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
+    //Use:
+    //const data = postTor('https://my_adress_tor.onion:13443/socket.io.js', {});
     async postTor(url, data) {
         var opts = Turl.parse(url);
         const urlEncodedData = new URLSearchParams(data).toString();
@@ -311,7 +315,99 @@ class Connexions{
         console.log('Serveur UDP is listening on port '+port);
     }
 
-    
+    websocket_server(port, onmessage){
+
+
+        const wss = new WebSocket.Server({ port: port}); // Create WebSocket server on port 8080
+        //console.log(wss.clients);
+        wss.on('connection', (ws) => {
+          console.log('Client connected');
+      
+          ws.on('message', (messageBinary) => {
+            var message = "";
+            // Handle message as UTF-8 encoded text (most common scenario)
+            if (typeof messageBinary === 'string') {
+              message = messageBinary;
+            } else if (messageBinary instanceof Buffer) {
+              message = message.toString('utf-8');
+            } else {
+              console.warn('Received message in unknown format:', message);
+            }
+            
+            onmessage(message, ws);
+            return;
+            ws.send('Hello from the server!');
+            
+            try {
+              const data = JSON.parse(message); // Attempt to parse JSON message
+      
+      
+              /*
+              const { action, channel, varname, value } = data; // Destructure message properties
+      
+              if (action === 'join') { // Handle 'join' action
+                console.log(`${ws.remoteAddress} joined channel: ${channel}`);
+                ws.join(channel); // Simulate channel joining (replace with your channel management logic)
+              } else if (action === 'emitto' || action === 'emitall') { // Handle 'emitto' or 'emitall' actions
+                if (!channel || !varname || typeof value === 'undefined') {
+                  console.error('Invalid emit message format');
+                  return;
+                }
+      
+                const emitTo = action === 'emitto' ? [varname] : wss.clients.filter((client) => client.readyState === WebSocket.OPEN); // Target specific client(s) or all connected clients
+                emitTo.forEach((client) => client.send(JSON.stringify({ from: ws.remoteAddress, to, action, varname, value })));
+              } else {
+                console.warn(`Unknown action: ${action}`);
+              }
+              */
+            } catch (error) {
+              console.error('Error processing message:', error);
+            }
+            
+          });
+      
+          // ... (add other event handlers for 'close', 'error', etc. as needed)
+        });
+      
+        console.log('WebSocket server listening on port 14080');
+    }
+
+    websocket_client(proxy_tor, destination_url, onconnexion, onmessage){
+        // SOCKS proxy to connect to
+        console.log('using proxy server %j', config.tor_server);
+        console.log('attempting to connect to WebSocket %j', config.anythingllm.url_tor);
+
+        // create an instance of the `SocksProxyAgent` class with the proxy server information
+        var agent = new SocksProxyAgent.SocksProxyAgent(config.tor_server);
+
+        // initiate the WebSocket connection
+        var socket = new WebSocket(config.anythingllm.url_tor, { 
+            agent: agent,
+            perMessageDeflate: false
+        });
+
+        socket.on('open', () => {
+            //console.log('WebSocket connection opened');
+            //socket.send('Hello from the client!');
+            onconnexion(socket);
+        });
+
+        socket.on('message', (message) => {
+            let msg = "";
+            // Handle message as UTF-8 encoded text (most common scenario)
+            if (typeof message === 'string') {
+                msg = message;
+                //console.log('Received message from server:', message);
+            } else if (message instanceof Buffer) {
+                msg = message.toString('utf-8');
+                // Handle message as binary data if necessary
+                //console.log('Received binary data from server:', message.toString('utf-8')); // Assuming UTF-8 encoding
+            } else {
+                console.warn('Received message from server in unknown format:', message);
+            }
+            onmessage(msg, socket);
+        });
+    }
 }
 
 // Maybe to do...

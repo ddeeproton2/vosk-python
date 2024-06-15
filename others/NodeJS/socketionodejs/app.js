@@ -50,8 +50,6 @@ const os = require('os');
 const path = require('path');
 const http2 = require('node:http2');
 const request = require('request');
-const SocksProxyAgent = require('socks-proxy-agent'); // Assuming 'socks-proxy-agent' library
-const WebSocket = require('ws');
 
 const PGP = require('./lib/PGP.js');
 const dir = require('./lib/directoriesmanager.js');
@@ -342,59 +340,10 @@ console.log("=================================================================")
 
 // ============== Serveur en mode websocket =================
 if(config.anythingllm.is_server){
-
-
-  const wss = new WebSocket.Server({ port: config.anythingllm.port_server }); // Create WebSocket server on port 8080
-
-  wss.on('connection', (ws) => {
-    console.log('Client connected');
-
-    ws.on('message', (messageBinary) => {
-      var message = "";
-      // Handle message as UTF-8 encoded text (most common scenario)
-      if (typeof messageBinary === 'string') {
-        message = messageBinary;
-      } else if (messageBinary instanceof Buffer) {
-        message = message.toString('utf-8');
-      } else {
-        console.warn('Received message in unknown format:', message);
-      }
-
-      console.log('Received message:', message);
-      ws.send('Hello from the server!');
-      
-      try {
-        const data = JSON.parse(message); // Attempt to parse JSON message
-
-
-        /*
-        const { action, channel, varname, value } = data; // Destructure message properties
-
-        if (action === 'join') { // Handle 'join' action
-          console.log(`${ws.remoteAddress} joined channel: ${channel}`);
-          ws.join(channel); // Simulate channel joining (replace with your channel management logic)
-        } else if (action === 'emitto' || action === 'emitall') { // Handle 'emitto' or 'emitall' actions
-          if (!channel || !varname || typeof value === 'undefined') {
-            console.error('Invalid emit message format');
-            return;
-          }
-
-          const emitTo = action === 'emitto' ? [varname] : wss.clients.filter((client) => client.readyState === WebSocket.OPEN); // Target specific client(s) or all connected clients
-          emitTo.forEach((client) => client.send(JSON.stringify({ from: ws.remoteAddress, to, action, varname, value })));
-        } else {
-          console.warn(`Unknown action: ${action}`);
-        }
-        */
-      } catch (error) {
-        console.error('Error processing message:', error);
-      }
-      
-    });
-
-    // ... (add other event handlers for 'close', 'error', etc. as needed)
+  internet.websocket_server(config.anythingllm.port_server, function(message, ws){
+    console.log('Received message:', message);
+    ws.send('Hello from the server!');
   });
-
-  console.log('WebSocket server listening on port 14080');
 }
 //==================================================
 
@@ -409,37 +358,19 @@ HiddenServicePort 14080 127.0.0.1:14080
 
 // ============== Client websocket =================
 if(config.anythingllm.is_client){
-  // SOCKS proxy to connect to
-  console.log('using proxy server %j', config.tor_server);
-  console.log('attempting to connect to WebSocket %j', config.anythingllm.url_tor);
-
-  // create an instance of the `SocksProxyAgent` class with the proxy server information
-  var agent = new SocksProxyAgent.SocksProxyAgent(config.tor_server);
-
-  // initiate the WebSocket connection
-  var socket = new WebSocket(config.anythingllm.url_tor, { 
-  agent: agent,
-  perMessageDeflate: false
+  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(message){
+    ws.send('Hello from the server!');
   });
 
-  socket.on('open', () => {
+
+  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(){
     console.log('WebSocket connection opened');
     socket.send('Hello from the client!');
-  });
+  }), function(message, socket){
+    console.log('Server message: '+message);
+    //socket.send('Message recieved from the client!');
+  };
 
-  socket.on('message', (message) => {
-
-    // Handle message as UTF-8 encoded text (most common scenario)
-    if (typeof message === 'string') {
-      console.log('Received message from server:', message);
-    } else if (message instanceof Buffer) {
-      // Handle message as binary data if necessary
-      console.log('Received binary data from server:', message.toString('utf-8')); // Assuming UTF-8 encoding
-    } else {
-      console.warn('Received message from server in unknown format:', message);
-    }
-
-  });
 }
   /*
   //========================= PGP =============================
