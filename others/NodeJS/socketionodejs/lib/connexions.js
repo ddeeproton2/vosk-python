@@ -185,7 +185,7 @@ class Connexions{
       
 
     getLocalIpAddress() {
-        if(!isWindowsOS()){return '127.0.0.1';}
+        if(!this.isWindowsOS()){return '127.0.0.1';}
         const interfaces = os.networkInterfaces();
         for (const name in interfaces) {
           const iface = interfaces[name];
@@ -281,7 +281,7 @@ class Connexions{
 
 
     // Bearer is in config.bearer
-    ask_anythinglm(msg, channel, onlydocuments, onresult, bearer){ 
+    ask_anythinglm(msg, channel, onlydocuments, api_url, bearer, onresult){ 
         const headers = {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer '+bearer
@@ -291,7 +291,7 @@ class Connexions{
           "mode": onlydocuments === true ? "query" : "chat"
         };
       
-        axios.post("http://localhost:3001/api/v1/workspace/"+channel+"/chat", data, { headers })
+        axios.post(api_url+"/api/v1/workspace/"+channel+"/chat", data, { headers })
         .then(response => {
             try{
                 //console.log(response); 
@@ -315,7 +315,7 @@ class Connexions{
         console.log('Serveur UDP is listening on port '+port);
     }
 
-    websocket_server(port, onmessage){
+    websocket_server(port, onmessage, onclose, onerror){
 
 
         const wss = new WebSocket.Server({ port: port}); // Create WebSocket server on port 8080
@@ -329,7 +329,7 @@ class Connexions{
             if (typeof messageBinary === 'string') {
               message = messageBinary;
             } else if (messageBinary instanceof Buffer) {
-              message = message.toString('utf-8');
+              message = messageBinary.toString('utf-8');
             } else {
               console.warn('Received message in unknown format:', message);
             }
@@ -369,19 +369,32 @@ class Connexions{
           // ... (add other event handlers for 'close', 'error', etc. as needed)
         });
       
-        console.log('WebSocket server listening on port 14080');
+        wss.on('close', (code, reason) => {
+            //console.log(`Client disconnected: code=${code}, reason=${reason}`);
+            // Traitez la déconnexion ici
+            onclose(code, reason);
+        });
+    
+        wss.on('error', (error) => {
+            //console.error('WebSocket error:', error);
+            // Traitez les erreurs ici
+            onerror(error);
+        });
+
+        console.log('WebSocket server listening on port '+port);
+        return wss;
     }
 
-    websocket_client(proxy_tor, destination_url, onconnexion, onmessage){
+    websocket_client(proxy_tor, destination_url, onconnexion, onmessage, onclose, onerror){
         // SOCKS proxy to connect to
-        console.log('using proxy server %j', config.tor_server);
-        console.log('attempting to connect to WebSocket %j', config.anythingllm.url_tor);
+        console.log('using proxy server %j', proxy_tor);
+        console.log('attempting to connect to WebSocket %j', destination_url);
 
         // create an instance of the `SocksProxyAgent` class with the proxy server information
-        var agent = new SocksProxyAgent.SocksProxyAgent(config.tor_server);
+        var agent = new SocksProxyAgent.SocksProxyAgent(proxy_tor);
 
         // initiate the WebSocket connection
-        var socket = new WebSocket(config.anythingllm.url_tor, { 
+        var socket = new WebSocket(destination_url, { 
             agent: agent,
             perMessageDeflate: false
         });
@@ -407,6 +420,15 @@ class Connexions{
             }
             onmessage(msg, socket);
         });
+
+
+        socket.on('close', (code, reason) => {
+            console.log(`WebSocket connection closed: code=${code}, reason=${reason}`);
+            onclose(code, reason, socket);
+        });
+    
+        socket.on('error', onerror);
+        return socket;
     }
 }
 

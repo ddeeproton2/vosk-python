@@ -2,8 +2,33 @@ const config = require('../config.js');
 const dir = require('./directoriesmanager.js');
 const file = require('./filesmanager.js');
 const internet = require('./connexions.js');
+const PGP = require('./PGP.js');
 
-
+function speech(msg, clientIP){
+    //console.log("To "+clientIP+" Say "+msg);
+    if(clientIP === undefined){console.log("Error: clientIP not defined :)");return;}
+    try {  
+      (async () => {
+        try {
+          //const data = await get('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+          //const data = await post('http://'+clientIP+':'+config.config_speech_port+'/?message='+encodeURIComponent(msg));
+          internet.speech('http://'+clientIP+':'+config.config_speech_port+'/?message=', msg, {}, function(data) {
+            console.log(`Données reçues : ${data}`);
+          });
+  
+  
+          //console.log(data); // Output: Parsed data (JSON, text, etc.)
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      })();
+      
+    } catch (error) {
+      console.error('GET request error:', error);
+      //throw error; // Re-throw the error for further handling if needed
+    }
+  
+}
 
 function char_to_word(msg){
     msg = msg.replaceAll(" ", " espace ");
@@ -41,10 +66,10 @@ function char_to_word(msg){
     msg = msg.replaceAll("`", "accent grave inversé");
     msg = msg.replaceAll("£", " Le curseur est ici. ");
     return msg;
-  }
+}
   
   
-  function char_to_keyword(msg){
+function char_to_keyword(msg){
     msg = msg.replaceAll("£", "");
     msg = msg.replaceAll(" ", "espace");
     msg = msg.replaceAll(".", "point");
@@ -80,7 +105,7 @@ function char_to_word(msg){
     msg = msg.replaceAll("	", "tabulation");
     msg = msg.replaceAll("`", "accent_grave_inverse");
     return msg;
-  }
+}
   
 
 
@@ -204,63 +229,153 @@ class VocalCommand {
     constructor(clientIPv4, self){
       this.clientIPv4 = clientIPv4;
       this.self = self;
+      this.socket = undefined;
+      this.masterclient = undefined;
+      this.socket_id_creation_time = undefined;
+      this.socket_publicKey = "";
       this.question = "";
       this.spelling = "";
       this.spelling_old = [];
       this.old = [];
       this.reponse = "";
+      this.working_mode = "";
     }
     start(){
       this.self.currentMode = "question";
       speech("Dites votre question", this.clientIPv4);
     }
     add(msg){
-      if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
-        if(this.question !== ""){
-          this.ask();
-        }else{
-          speech("Pas de question", this.clientIPv4);
+        let vc = this.self;
+        
+        if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
+            if(this.question !== ""){
+            this.ask();
+            }else{
+                speech("Pas de question", this.clientIPv4);
+            }
+            return;
         }
-        return;
-      }
-      if(["répète"].indexOf(msg) !== -1){
-        if(this.reponse === ""){
-          speech("Pas de réponse à répéter", this.clientIPv4);
-        }else{
-          speech(this.reponse, this.clientIPv4);
+        if(["répète"].indexOf(msg) !== -1){
+            if(this.reponse === ""){
+                speech("Pas de réponse à répéter", this.clientIPv4);
+            }else{
+                speech(this.reponse, this.clientIPv4);
+            }
+            return;
         }
-        return;
-      }
-      if(["non"].indexOf(msg) !== -1){
-        if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
-          speech("Annulation du mot "+this.question+". Vous n'avez plus rien en mémoire", this.clientIPv4);
-          this.question = "";
-        }else{
-          speech("Annulation du mot "+this.question+". Votre question restante est "+this.old[this.old.length - 1], this.clientIPv4);
-          this.question = this.old[this.old.length - 1];
-          this.old.pop(); // remove last item
+        if(["non"].indexOf(msg) !== -1){
+            if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
+                speech("Annulation du mot "+this.question+". Vous n'avez plus rien en mémoire", this.clientIPv4);
+                this.question = "";
+            }else{
+                speech("Annulation du mot "+this.question+". Votre question restante est "+this.old[this.old.length - 1], this.clientIPv4);
+                this.question = this.old[this.old.length - 1];
+                this.old.pop(); // remove last item
+            }
+            return;
         }
-        return;
-      }
-  
-      if(msg !== "" && msg !== undefined){
-        if(this.question !== "" && this.question !== undefined){
-          this.old.push(this.question);
+
+        if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
+            speech("Epelez votre chiffre", this.clientIPv4);
+            this.working_mode = "spell_number";
+            return;
         }
-        this.question += msg + " ";
-        speech(this.question, this.clientIPv4);
-      }
+    
+        if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
+            speech("Epelez votre lettre", this.clientIPv4);
+            this.working_mode = "spell_char";
+            return;
+        }
+
+        //===============
+        if(this.working_mode === ""){
+            // Add message to queue
+            if(msg !== "" && msg !== undefined){
+                if(this.question !== "" && this.question !== undefined){
+                    this.old.push(this.question);
+                }
+                this.question += msg + " ";
+                speech(this.question, this.clientIPv4);
+            }
+        }
+
+        //===============
+        if(this.working_mode === "spell_number"){
+            if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+                this.working_mode = "";
+                speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
+                return;
+            }
+            var selected = this.getVoiceToNumber(msg);
+            if(selected !== ""){
+                // Add message to queue
+                if(selected !== "" && selected !== undefined){
+                    if(this.question !== "" && this.question !== undefined){
+                        this.old.push(this.question);
+                    }
+                    this.question += selected + " ";
+                    speech(this.question, this.clientIPv4);
+                }
+            }
+        }    
+        
+        //===============
+        if(this.working_mode === "spell_char"){
+            if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+                this.working_mode = "";
+                speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
+                return;
+            }
+            var selected = this.getVoiceToChar(msg);
+            if(selected !== ""){
+                // Add message to queue
+                if(selected !== "" && selected !== undefined){
+                    if(this.question !== "" && this.question !== undefined){
+                        this.old.push(this.question);
+                    }
+                    this.question += selected + " ";
+                    speech(this.question, this.clientIPv4);
+                }
+            }
+        }
     }
     ask(){
       this.self.currentMode = "";
+      this.working_mode = "";
       speech("Veuillez patienter. Je réfléchis à votre question. ", this.clientIPv4);
       let base = this;
-      ask(this.question, function(result){
+      if(this.socket === undefined){
+        console.log("Error: no event socket defined");
+        return;
+      }
+      if(this.masterclient === undefined){
+        console.log("Error: no masterclient defined");
+        return;
+      }
+      if(this.socket_id_creation_time === undefined){
+        console.log("Error: no socket_id_creation_time defined");
+        return;
+      }
+
+      var enc = PGP.encrypt(JSON.stringify({
+        action: 'question',
+        msg: this.question
+      }), this.socket_publicKey);
+
+      this.socket.send(JSON.stringify({
+        action: 'encoded',
+        from:this.masterclient.id_creation_time,
+        to: this.socket_id_creation_time,
+        enc: enc
+      }));
+      /*
+      this.onask(this.question, function(result){
         base.reponse = result;
         console.log(result);
         result = result.replaceAll("*","").replaceAll("\\r","");
         speech(result, base.clientIPv4);
       });
+      */
       this.question = "";
       this.old = [];
     }
@@ -405,6 +520,7 @@ class VocalCommand {
       speech("Vous lancez le mode apprentissage des chiffres. Veuillez dire le chiffre "+this.current_number_to_learn+", suivant, annuler ou répêter", this.clientIPv4);
     }
     learn(msg){
+        let vc = this.self;
       if(this.learning_mode === ""){
         if(vc.isCommand('repeter', msg)){
           speech("Veuillez dire le chiffre "+this.current_number_to_learn+", suivant, annuler ou répêter", this.clientIPv4);
@@ -474,6 +590,7 @@ class VocalCommand {
       speech("Vous lancez le mode apprentissage des lettres. Veuillez dire le caractère "+char_to_word(this.chars_list.charAt(this.current_char_to_learn))+", suivant, annuler ou répêter", this.clientIPv4);
     }
     learn(msg){
+        let vc = this.self;
       if(this.learning_mode === ""){
         if(vc.isCommand('repeter', msg)){
           speech("Veuillez dire le caractère "+char_to_word(this.chars_list.charAt(this.current_char_to_learn))+", suivant, annuler ou répêter", this.clientIPv4);
@@ -543,131 +660,135 @@ class VocalCommand {
       speech("Vous lancez le mode editeur.", this.clientIPv4);
     }
     work(msg){
-      if(this.working_mode === ""){
-        if(['annuler'].indexOf(msg) !== -1 || vc.isCommand('annuler', msg)){
-          this.self.currentMode = "";
-          speech("Sortie du mode editeur.", this.clientIPv4);
-          return;
+        let vc = this.self;
+        if(this.working_mode === ""){
+            if(['annuler'].indexOf(msg) !== -1 || vc.isCommand('annuler', msg)){
+                this.self.currentMode = "";
+                speech("Sortie du mode editeur.", this.clientIPv4);
+                return;
+            }
+    
+            if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
+                //speech("Lecture de visual code", this.clientIPv4);
+                //this.vscode_read(this.nodeserver);
+                this.vscode_readposition(this.nodeserver);
+                return;
+            }
+            if(vc.isCommand('ligne', msg)){
+                vscode_execute_code(`
+                    let currentLine = cmd.currentLine();
+                    let currentChar = cmd.currentChar();
+                    cmd.post("http://`+this.nodeserver+`/speak", {
+                    msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
+                    });
+                `);
+                return;
+            }
+    
+            if(vc.isCommand('lire_position', msg)){
+                this.vscode_readposition(this.nodeserver);
+                return;
+            }
+    
+            if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
+                speech("Passe à la ligne suivante", this.clientIPv4);
+                this.vscode_nextline(this.nodeserver);
+                return;
+            }
+    
+            if(['ligne précédente'].indexOf(msg) !== -1 || vc.isCommand('lignes_precedantes', msg)){
+                speech("Passe à la ligne précédente", this.clientIPv4);
+                this.vscode_prevline(this.nodeserver);
+                return;
+            }
+    
+    
+            if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
+                speech("Epelez votre chiffre", this.clientIPv4);
+                this.working_mode = "spell_number";
+                return;
+            }
+    
+            if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
+                speech("Epelez votre lettre", this.clientIPv4);
+                this.working_mode = "spell_char";
+                return;
+            }
+    
+            if(msg === 'nouvelle ligne' || vc.isCommand('nouvelle_ligne', msg)){
+                this.vscode_addnewline(this.nodeserver);
+                return;
+            }
+    
+            if(msg === 'effacer avant' || vc.isCommand('effacer_avant', msg)){
+                this.vscode_deletebefore(this.nodeserver);
+                return;
+            }
+            if(msg === 'effacer après' || vc.isCommand('effacer_apres', msg)){
+                this.vscode_deleteafter(this.nodeserver);
+                return;
+            }
+
+            if(['suivant','après','avancer','prochain','flèche droite'].indexOf(msg) !== -1 || vc.isCommand('suivant', msg)){
+                this.vscode_cursorMoveToNextChar(this.nodeserver);
+                return;
+            }
+    
+            if(['précédent','avant','reviens','reculez','fléche gauche'].indexOf(msg) !== -1 || vc.isCommand('precedent', msg)){
+                this.vscode_cursorMoveToPreviousChar(this.nodeserver);
+                return;
+            }
+    
         }
-  
-        if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
-          //speech("Lecture de visual code", this.clientIPv4);
-          //this.vscode_read(this.nodeserver);
-          this.vscode_readposition(this.nodeserver);
-          return;
+        //===============
+        if(this.working_mode === "spell_number"){
+                if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+                    this.working_mode = "";
+                    speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
+                    return;
+                }
+                var selected = this.getVoiceToNumber(msg);
+                if(selected !== ""){
+                    console.log(selected);
+                    this.vscode_writemsg(selected, this.nodeserver);
+                }
         }
-        if(vc.isCommand('ligne', msg)){
-          vscode_execute_code(`
-            let currentLine = cmd.currentLine();
-            let currentChar = cmd.currentChar();
-            cmd.post("http://`+this.nodeserver+`/speak", {
-              msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
-            });
-          `);
-          return;
+        
+        //===============
+        if(this.working_mode === "spell_char"){
+                if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+                    this.working_mode = "";
+                    speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
+                    return;
+                }
+                var selected = this.getVoiceToChar(msg);
+                if(selected !== ""){
+                    this.vscode_writemsg(selected, this.nodeserver);
+                }
         }
-  
-        if(vc.isCommand('lire_position', msg)){
-          this.vscode_readposition(this.nodeserver);
-          return;
-        }
-  
-        if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
-          speech("Passe à la ligne suivante", this.clientIPv4);
-          this.vscode_nextline(this.nodeserver);
-          return;
-        }
-  
-        if(['ligne précédente'].indexOf(msg) !== -1 || vc.isCommand('lignes_precedantes', msg)){
-          speech("Passe à la ligne précédente", this.clientIPv4);
-          this.vscode_prevline(this.nodeserver);
-          return;
-        }
-  
-  
-        if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
-          speech("Epelez votre chiffre", this.clientIPv4);
-          this.working_mode = "spell_number";
-          return;
-        }
-  
-        if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
-          speech("Epelez votre lettre", this.clientIPv4);
-          this.working_mode = "spell_char";
-          return;
-        }
-  
-        if(msg === 'nouvelle ligne' || vc.isCommand('nouvelle_ligne', msg)){
-          this.vscode_addnewline(this.nodeserver);
-          return;
-        }
-  
-        if(msg === 'effacer avant' || vc.isCommand('effacer_avant', msg)){
-          this.vscode_deletebefore(this.nodeserver);
-          return;
-        }
-        if(msg === 'effacer après' || vc.isCommand('effacer_apres', msg)){
-          this.vscode_deleteafter(this.nodeserver);
-          return;
-        }
-        //cool
-        if(['suivant','après','avancer','prochain','flèche droite'].indexOf(msg) !== -1 || vc.isCommand('suivant', msg)){
-          this.vscode_cursorMoveToNextChar(this.nodeserver);
-          return;
-        }
-  
-        if(['précédent','avant','reviens','reculez','fléche gauche'].indexOf(msg) !== -1 || vc.isCommand('precedent', msg)){
-          this.vscode_cursorMoveToPreviousChar(this.nodeserver);
-          return;
-        }
-  
-      }
-      //===============
-      if(this.working_mode === "spell_number"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
-          this.working_mode = "";
-          speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
-          return;
-        }
-        var selected = this.getVoiceToNumber(msg);
-        if(selected !== ""){
-          this.vscode_writemsg(selected, this.nodeserver);
-        }
-      }    
-      
-      //===============
-      if(this.working_mode === "spell_char"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
-          this.working_mode = "";
-          speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
-          return;
-        }
-        var selected = this.getVoiceToChar(msg);
-        if(selected !== ""){
-          this.vscode_writemsg(selected, this.nodeserver);
-        }
-      }
     }
     //=============
     getVoiceToChar(msg){
-      for(let i = 0; i < this.chars_list.length; i++){
-        let selectedChar = this.chars_list.charAt(i);
-        let selectedCharKeyword = char_to_keyword(selectedChar);
-        //let selectedCharTitle = char_to_word(selectedChar);
-        if(vc.isCommand(selectedCharKeyword, msg)){
-          return selectedChar;
+        let vc = this.self;
+        for(let i = 0; i < this.chars_list.length; i++){
+            let selectedChar = this.chars_list.charAt(i);
+            let selectedCharKeyword = char_to_keyword(selectedChar);
+            //let selectedCharTitle = char_to_word(selectedChar);
+            if(vc.isCommand(selectedCharKeyword, msg)){
+            return selectedChar;
+            }
         }
-      }
-      return "";
+        return "";
     }
     //=============
     getVoiceToNumber(msg){
-      for(let i = 0; i < 10; i++){
-        if(vc.isCommand(i, msg)){
-          return i;
+        let vc = this.self;
+        for(let i = 0; i < 10; i++){
+            if(vc.isCommand(i, msg)){
+                return i;
+            }
         }
-      }
-      return "";
+        return "";
     }
     //=============
     vscode_execute_code(code){
@@ -739,7 +860,7 @@ class VocalCommand {
         `);
     }
     vscode_writemsg(msg, nodeserver){
-        let msg_protected = msg.replaceAll("'", "\'");
+        let msg_protected = msg.toString().replaceAll("'", "\'");
         this.vscode_execute_code(`
             if(cmd.insertInEditorAtCurrentPosition('`+msg_protected+`')){
                 cmd.post("http://`+nodeserver+`/speak", {msg:"Ecriture `+msg_protected+`"});
@@ -901,31 +1022,31 @@ class MainSpeakCommands{
             if(this.questionllm.spelling !== ""){
                 this.vc.typeSpeak = "";
                 if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
-                    this.questionllm.old.push(this.questionllm.question);
-                }
-                this.questionllm.question += this.questionllm.spelling + " ";
-                speech(this.questionllm.question, clientIPv4);
+                    if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
+                        this.questionllm.old.push(this.questionllm.question);
+                    }
+                    this.questionllm.question += this.questionllm.spelling + " ";
+                    this.speech(this.questionllm.question, clientIPv4);
                 }
             }else{
-                speech("Pas de caractère dicté", clientIPv4);
+                this.speech("Pas de caractère dicté", clientIPv4);
             }
             return;
             }
             if(["répète"].indexOf(msg) !== -1){
             if(this.questionllm.spelling === ""){
-                speech("Pas de caractère en mémoire à répéter", clientIPv4);
+                this.speech("Pas de caractère en mémoire à répéter", clientIPv4);
             }else{
-                speech(this.questionllm.spelling, clientIPv4);
+                this.speech(this.questionllm.spelling, clientIPv4);
             }
             return;
             }
             if(["non"].indexOf(msg) !== -1){
             if(this.questionllm.spelling_old.length == 0 || this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1] === ""){
-                speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
+                this.speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
                 questionllm.spelling = "";
             }else{
-                speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
+                this.speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
                 this.questionllm.spelling = this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1];
                 this.questionllm.spelling_old.pop(); // remove last item
             }
@@ -934,21 +1055,21 @@ class MainSpeakCommands{
         }
         if(this.vc.typeSpeak === "alphabet"){
             if(this.vc.isCommandAlphabet(msg)){
-            if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                this.questionllm.spelling_old.push(this.questionllm.spelling);
-            }
-            this.questionllm.spelling += this.vc.getCommandNumeric(msg);
-            speech(this.questionllm.spelling, clientIPv4);
+                if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                    this.questionllm.spelling_old.push(this.questionllm.spelling);
+                }
+                this.questionllm.spelling += this.vc.getCommandNumeric(msg);
+                this.speech(this.questionllm.spelling, clientIPv4);
             }
             return;
         }
         if(this.vc.typeSpeak === "numeric"){
             if(this.vc.isCommandNumeric(msg)){
-            if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                this.questionllm.spelling_old.push(this.questionllm.spelling);
-            }
-            this.questionllm.spelling += vc.getCommandNumeric(msg);
-            speech(this.questionllm.spelling, clientIPv4);
+                if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                    this.questionllm.spelling_old.push(this.questionllm.spelling);
+                }
+                this.questionllm.spelling += vc.getCommandNumeric(msg);
+                this.speech(this.questionllm.spelling, clientIPv4);
             }
             return;
         }
@@ -1023,13 +1144,13 @@ class MainSpeakCommands{
         }
         if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg)){
             this.editor.clientIPv4 = clientIPv4;
-            this.editor.nodeserver = internet.getLocalIpAddress()+':'+httpServer.address().port;
+            this.editor.nodeserver = config.nodeserver;
             this.editor.start();
             return;
         }
         // =================== Last commands (must be at the end)
         if(this.vc.isCommand('repeter', msg)){
-            speech(startMessage, clientIPv4);
+            this.speech(startMessage, clientIPv4);
             return;
         }
     

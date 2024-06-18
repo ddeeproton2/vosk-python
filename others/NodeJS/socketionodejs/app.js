@@ -50,12 +50,15 @@ const os = require('os');
 const path = require('path');
 const http2 = require('node:http2');
 const request = require('request');
+const { createPublicKey } = require('crypto');
 
 const PGP = require('./lib/PGP.js');
 const dir = require('./lib/directoriesmanager.js');
 const file = require('./lib/filesmanager.js');
 const internet = require('./lib/connexions.js');
 const speakcommands = require('./lib/speakcommands.js');
+const masterserver = require('./lib/master_server.js');
+const masterclient = require('./lib/master_client.js');
 const config = require('./config.js');
 
 const app = express();
@@ -340,27 +343,189 @@ console.log("=================================================================")
 
 // ============== Serveur en mode websocket =================
 if(config.anythingllm.is_server){
-  internet.websocket_server(config.anythingllm.port_server, function(message, ws){
-    console.log('Received message:', message);
-    ws.send('Hello from the server!');
+
+  masterserver.start(config.anythingllm.port_server, function(message, ws){
+    //console.log(message);
+    let data;
+    try {
+      data = JSON.parse(message); // Attempt to parse JSON message
+      if(data.action === 'heartbeat'){
+        console.log("Send heartbeat to client");
+        ws.send(JSON.stringify({
+          action: 'heartbeat'
+        }));
+        return;
+      }
+      if(data.action === 'handshake'){
+        if(masterserver.addClient(data)){
+          var enc = PGP.encrypt(JSON.stringify({
+            action: 'handshake',
+            publicKey: masterserver.publicKey,
+            id_creation_time: masterserver.id_creation_time
+          }), data.publicKey);
+
+          ws.send(JSON.stringify({
+            action: 'encoded',
+            from:masterserver.id_creation_time,
+            to: data.id_creation_time,
+            enc: enc
+          }));
+          console.log("Server respond handshake encoded to "+data.id_creation_time);
+        }
+
+      }
+      if(data.action === 'encoded'){
+        let dec = JSON.parse(PGP.decrypt(data.enc, masterserver.privateKey));
+
+        if(dec.action === 'question'){
+          
+          console.log("Question du client: "+data.from+" - "+dec.msg);
+          internet.ask_anythinglm(dec.msg, config.anythingllm.api_channel, false, config.anythingllm.api_url, config.anythingllm.bearer, function(reponse){
+
+            console.log("Envoi la réponse au client client: "+data.from);
+            var enc = PGP.encrypt(JSON.stringify({
+              action: 'reponse',
+              msg: reponse
+            }), masterserver.getClient(data.from));
+    
+    
+            ws.send(JSON.stringify({
+              action: 'encoded',
+              from:masterserver.id_creation_time,
+              to: data.from,
+              enc: enc
+            }));
+            
+          });
+
+
+
+        }
+
+
+      }
+
+    } catch (error) {
+      console.error('Error processing message:', error);
+      //ws.send('Hello from the server!');
+      return;
+    }
+    //console.log('Server received message:', message);
+  },function(code, reason){ // close
+    console.log("Connexion closed "+code+" - "+reason);
+  },function(error){ // error
+    console.log("Connexion error");
+    console.log(error);
   });
 }
 
 // ============== Client websocket =================
-if(config.anythingllm.is_client){
-  internet.websocket_client(config.tor_server, config.anythingllm.url_tor, function(socket){
-    console.log('WebSocket connection opened');
-    socket.send('Hello from the client!');
-  }), function(message, socket){
-    console.log('Server message: '+message);
-    //socket.send('Message recieved from the client!');
-  };
-}
 
+var sckClient = undefined;
+if(config.anythingllm.is_client){
+  
+  masterclient.start(config.tor_server, config.anythingllm.url_tor, function(socket){ // on connexion
+    sckClient = socket;
+    speakcommands.questionllm.socket = socket;
+    console.log('WebSocket connection opened');
+    socket.send(JSON.stringify({
+      action: 'handshake',
+      publicKey: masterclient.publicKey,
+      id_creation_time: masterclient.id_creation_time
+    }));
+  }, function(message, socket){ // message
+    //console.log('Server message: '+message);
+    let data;
+    try {
+      data = JSON.parse(message); // Attempt to parse JSON message
+      if(data.action === 'heartbeat'){
+        console.log("Heartbeat from server");
+        return;
+      }
+      if(data.action === 'encoded'){
+        let dec = JSON.parse(PGP.decrypt(data.enc, masterclient.privateKey));
+        if(dec.action === 'reponse'){
+          //internet.ask_anythinglm(dec.msg, dec.channel, dec.onlydocument, onresult, dec.baerer);
+          console.log("Réponse du serveur: "+dec.msg);
+          //speakcommands.speak(dec.msg, config.config_speech_ip);
+          speakcommands.speech(dec.msg, config.config_speech_ip);
+        }
+
+        if(dec.action === 'handshake'){
+          masterclient.addClient(dec);
+          speakcommands.questionllm.socket_publicKey = dec.publicKey;
+          speakcommands.questionllm.socket_id_creation_time = dec.id_creation_time;
+
+          /*
+          console.log("Question au serveur");
+
+          var enc = PGP.encrypt(JSON.stringify({
+            action: 'question',
+            msg: 'Raconte quelque chose en rapport avec le voyage spatial'
+          }), masterclient.getClient(data.from));
+  
+          socket.send(JSON.stringify({
+            action: 'encoded',
+            from:masterclient.id_creation_time,
+            to: data.from,
+            enc: enc
+          }));
+          */
+          return;
+        }
+      }
+
+    } catch (error) {
+      console.error('Error processing message:', error);
+      return;
+    }
+  }, function(code, reason, socket){ // close
+    console.log("Connexion closed "+code+" - "+reason);
+    setTimeout(function(){
+      masterclient.restart();
+    },5000);  
+  }, function(error, message, socket){ // error
+    console.log("Connexion error"+message);
+  });
+  speakcommands.questionllm.masterclient = masterclient;
+
+
+
+  function send_heartbeat(){
+    if(sckClient === undefined){
+      console.log("Erreur le serveur est pas allumé ?");  
+      return;
+    }
+    console.log("Client request the heartbeat");
+    sckClient.send(JSON.stringify({
+      action: 'heartbeat'
+    }));
+    /*
+    var enc = PGP.encrypt(JSON.stringify({
+      action: 'question',
+      msg: 'Raconte quelque chose en rapport avec le voyage spatial'
+    }), masterclient.getClient(data.from));
+
+    sckClient.send(JSON.stringify({
+      action: 'encoded',
+      from:masterclient.id_creation_time,
+      to: data.from,
+      enc: enc
+    }));
+    */
+  }
+
+  if(config.anythingllm.enable_heartbeat){
+   console.log("Envoi msg test dans 20 sec...");
+    setInterval(send_heartbeat, config.anythingllm.timer_heartbeat);
+  }
+
+
+}
 
   /*
   //========================= PGP =============================
-  var d = new Date();
+ 
   var sessionPGP = PGP.generate();
   console.log(sessionPGP);
   console.log(d.getTime())

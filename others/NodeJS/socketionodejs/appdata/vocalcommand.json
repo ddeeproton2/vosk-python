@@ -32,7 +32,10 @@
   "annuler": [
     "sortir",
     "terminé",
-    "annulé"
+    "annulé",
+    "quitter",
+    "cité",
+    "ticket"
   ],
   "suivant": [
     "suivant",
@@ -40,7 +43,8 @@
     "prochain",
     "suivantes",
     "suzanne",
-    "fuyant"
+    "fuyant",
+    "une suivantes"
   ],
   "question": [
     "j'ai une question",
@@ -64,35 +68,44 @@
   ],
   "lire": [
     "lire",
-    "lecture"
+    "lecture",
+    "livre"
+  ],
+  "ligne": [
+    "ligne"
   ],
   "lignes_suivantes": [
     "lignes suivantes",
-    "lignes suivante",
     "prochaines lignes",
     "ligne en en-dessous",
     "ligne en dessous",
     "ligne après",
+    "lignes après",
+    "ligne affreux",
     "les suivantes",
-    "ligne suivantes",
-    "une suivantes",
-    "en dessous",
-    "descendre",
-    "town",
-    "dawn"
+    "descends",
+    "les champs",
+    "ligne suivantes"
   ],
   "lignes_precedantes": [
+    "les lignes précédente",
     "ligne précédente",
     "line précédente",
     "ligne au-dessus",
     "ligne avant",
     "cette ligne en haut",
+    "monte",
+    "montre",
     "précédente ligne"
   ],
   "ecrire_chiffre": [
-    "écrire chiffres"
+    "ecrire chiffres",
+    "écrire chiffres",
+    "écrire cuivre"
   ],
   "ecrire_lettre": [
+    "ecrire lettre",
+    "écrire lettres",
     "écrire lettre"
   ],
   "a": [
@@ -586,16 +599,20 @@
   ],
   "editeur": [
     "éditeur",
-    "l'éditeur"
+    "l'éditeur",
+    "hésiter"
   ],
   "nouvelle_ligne": [
     "nouvelle ligne",
-    "retour à la ligne"
+    "retour à la ligne",
+    "ajoutez une ligne"
   ],
   "effacer_avant": [
     "effacer avant",
     "effacer un caractère avant",
+    "effacer à rang",
     "effacer un",
+    "elle passait avant",
     "effacer un caractère"
   ],
   "effacer_apres": [
