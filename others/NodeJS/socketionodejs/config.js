@@ -11,7 +11,8 @@ module.exports = {
     //      https://github.com/ddeeproton2/vosk-python/blob/main/others/VoiceTextToSpeechHTTP.exe
     //  Python
     //      https://github.com/ddeeproton2/vosk-python/tree/main
-    config_speech_ip: '127.0.0.1',
+    config_speech_ip: '192.168.1.52',
+    //config_speech_ip: '127.0.0.1',
     config_speech_port: '1225',
     
     // Config for LLM (Large language Model)
@@ -20,7 +21,7 @@ module.exports = {
     // Complete and faster
     //      https://lmstudio.ai/
     
-    config_jan_api: "http://127.0.0.1:1234/v1/chat/completions",
+    config_jan_api: "http://192.168.1.45:1234/v1/chat/completions",
 
     // Config for the Extensions Visual Studio: "EvalOnHTTP"
     //      https://github.com/ddeeproton2/vosk-python/tree/main/others/vscode_evalonhttp
@@ -41,21 +42,22 @@ module.exports = {
     HiddenServicePort 14080 127.0.0.1:14080
     */
 
-    tor_server: 'socks://127.0.0.1:9050',
+    tor_server: 'socks://127.0.0.1:19050',
+    //tor_server: 'socks://127.0.0.1:9050',
 
     // Config for Anything LLM
     //      https://useanything.com/
     anythingllm:{
         // === Server ===
-        is_server: true,
+        is_server: false,
         port_server: 14080,
-        api_url: 'http://127.0.0.1:3001',
+        api_url: 'http://192.168.1.77:3001',
         api_channel: 'speakcommandsjs',
         // === Client ===
         is_client: false,
-        url_tor:'ws://your_adress.onion:14080',
+        url_tor:'ws://5dufelsmobi4ghtenwpuioq3ax7nyb4bgitwaddexdwnyntt7lasm2yd.onion:14080',
         bearer: 'ZQXDTDV-6CQ4PZZ-PBCFYMV-878Q02X',
-        enable_heartbeat: false,
+        enable_heartbeat: true,
         timer_heartbeat: 30000
     },
 

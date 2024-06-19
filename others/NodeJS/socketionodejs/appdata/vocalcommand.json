@@ -629,5 +629,23 @@
   ],
   "precedent": [
     "précédent"
+  ],
+  "list_tabs": [
+    "les onglets",
+    "liste"
+  ],
+  "current_tab": [
+    "titre",
+    "document",
+    "fichier",
+    "onglet",
+    "l'onglet"
+  ],
+  "ouvrir": [
+    "ouvrir"
+  ],
+  "fermer_onglet": [
+    "fermer",
+    "fermer onglet"
   ]
 }

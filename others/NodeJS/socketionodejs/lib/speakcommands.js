@@ -679,9 +679,30 @@ class VocalCommand {
                     let currentLine = cmd.currentLine();
                     let currentChar = cmd.currentChar();
                     cmd.post("http://`+this.nodeserver+`/speak", {
-                    msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
+                      msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
                     });
                 `);
+                return;
+            }
+    
+            if(vc.isCommand('list_tabs', msg)){
+                this.vscode_tabs(this.nodeserver);
+                return;
+            }
+    
+            if(vc.isCommand('current_tab', msg)){
+                this.vscode_speak_current_tab(this.nodeserver);
+                return;
+            }
+    
+            if(vc.isCommand('ouvrir', msg)){
+                // TODO l'ouverture
+                //this.vscode_switchToEditor(this.nodeserver,filename);
+                return;
+            }
+
+            if(vc.isCommand('fermer_onglet', msg)){
+                this.vscode_close_active_tab(this.nodeserver);
                 return;
             }
     
@@ -796,29 +817,69 @@ class VocalCommand {
     }
     //=============
     ask_vscode(msg, nodeserver){
-        let msg_protected = msg.replaceAll("'", "\'");
-        this.vscode_execute_code(`
-          let msg = '`+msg_protected+`';
-          let readall = cmd.readAll();
-          let selected = cmd.readSelected();
-          if(selected === ""){
-            selected = cmd.readCurrentLine();
-          }
-          let finalmsg = msg + "\\n\\n" + selected + "\\n\\nVoici mon code en entier:\\n\\n"+readall;
-          if(selected+msg !== ""){
-            cmd.post("http://`+nodeserver+`/ask", {msg:finalmsg});
-          }
-        `);
-      }
+      let msg_protected = msg.replaceAll("'", "\'");
+      this.vscode_execute_code(`
+        let msg = '`+msg_protected+`';
+        let readall = cmd.readAll();
+        let selected = cmd.readSelected();
+        if(selected === ""){
+          selected = cmd.readCurrentLine();
+        }
+        let finalmsg = msg + "\\n\\n" + selected + "\\n\\nVoici mon code en entier:\\n\\n"+readall;
+        if(selected+msg !== ""){
+          cmd.post("http://`+nodeserver+`/ask", {msg:finalmsg});
+        }
+      `);
+    }
+
     //=============
+    vscode_tabs(nodeserver){
+      this.vscode_execute_code(`
+          let tabs = cmd.listOpenEditors();
+          cmd.post("http://`+nodeserver+`/speak", {msg:"Liste des onglets ouverts "+JSON.stringify(tabs)});
+      `);
+    }
+    vscode_speak_current_tab(nodeserver){
+      this.vscode_execute_code(`
+          let tab = cmd.getActiveEditorInfo();
+          cmd.post("http://`+nodeserver+`/speak", {msg:"L'onglet ouvert est. "+tab.fileName+". Le chemin complet de l'onglet est "+tab.filePath});
+      `);
+    }
+    vscode_switchToEditor(nodeserver, filename){
+      let filename_protected = filename.replaceAll("'", "\'");
+      this.vscode_execute_code(`
+          if(cmd.switchToEditor(`+filename_protected+`)){
+            cmd.post("http://`+nodeserver+`/speak", {msg:"Document ouvert "+`+filename_protected+`});
+          }else{
+            cmd.post("http://`+nodeserver+`/speak", {msg:"Erreur. Document pas ouvert "+`+filename_protected+`});
+          }
+      `);
+    }
+    vscode_openfile(nodeserver, filename){
+      let filename_protected = filename.replaceAll("'", "\'");
+
+      this.vscode_execute_code(`
+          if(cmd.openNewEditor(`+filename_protected+`)){
+            cmd.post("http://`+nodeserver+`/speak", {msg:"Document ouvert "+`+filename_protected+`});
+          }else{
+            cmd.post("http://`+nodeserver+`/speak", {msg:"Erreur. Document pas ouvert "+`+filename_protected+`});
+          }
+      `);
+    }
+    vscode_close_active_tab(nodeserver){
+      this.vscode_execute_code(`
+          let tabs = cmd.closeCurrentEditor();
+          cmd.post("http://`+nodeserver+`/speak", {msg:"Onglet fermé"});
+      `);
+    }
     vscode_cursorMoveToPreviousChar(nodeserver){
-        this.vscode_execute_code(`
-            if(cmd.cursorMoveToPreviousChar()){
-                cmd.post("http://`+nodeserver+`/speak", {msg:"Recule de un caractère"});
-            }else{
-                cmd.post("http://`+nodeserver+`/speak", {msg:'Error Can not move to previous char in visual'});
-            }
-        `);
+      this.vscode_execute_code(`
+          if(cmd.cursorMoveToPreviousChar()){
+              cmd.post("http://`+nodeserver+`/speak", {msg:"Recule de un caractère"});
+          }else{
+              cmd.post("http://`+nodeserver+`/speak", {msg:'Error Can not move to previous char in visual'});
+          }
+      `);
     }
     vscode_cursorMoveToNextChar(nodeserver){
         this.vscode_execute_code(`
