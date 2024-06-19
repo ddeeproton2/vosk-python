@@ -834,15 +834,22 @@ class VocalCommand {
 
     //=============
     vscode_tabs(nodeserver){
+      console.log('tabs');
       this.vscode_execute_code(`
           let tabs = cmd.listOpenEditors();
-          cmd.post("http://`+nodeserver+`/speak", {msg:"Liste des onglets ouverts "+JSON.stringify(tabs)});
+          
+          let files = [];
+          for(var i in tabs){
+            files.push(cmd.getFileName(tabs[i].uri.fsPath));
+          }
+          
+          cmd.post("http://`+nodeserver+`/speak", {msg:"Liste des onglets ouverts "+JSON.stringify(files).replaceAll('"',"")});
       `);
     }
     vscode_speak_current_tab(nodeserver){
       this.vscode_execute_code(`
           let tab = cmd.getActiveEditorInfo();
-          cmd.post("http://`+nodeserver+`/speak", {msg:"L'onglet ouvert est. "+tab.fileName+". Le chemin complet de l'onglet est "+tab.filePath});
+          cmd.post("http://`+nodeserver+`/speak", {msg:"L'onglet ouvert est. "+tab.fileName.replaceAll(":",". Deux points. ").replaceAll("\\\\",". Slash. ")+"."});
       `);
     }
     vscode_switchToEditor(nodeserver, filename){
