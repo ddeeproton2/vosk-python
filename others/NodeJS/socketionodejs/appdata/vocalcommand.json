@@ -35,7 +35,8 @@
     "annulé",
     "quitter",
     "cité",
-    "ticket"
+    "ticket",
+    "kit"
   ],
   "suivant": [
     "suivant",
@@ -84,8 +85,14 @@
     "ligne affreux",
     "les suivantes",
     "descends",
+    "des champs",
     "les champs",
-    "ligne suivantes"
+    "ligne suivantes",
+    "descendre",
+    "défendre",
+    "décembre",
+    "du sang",
+    "les chambres"
   ],
   "lignes_precedantes": [
     "les lignes précédente",
@@ -96,6 +103,8 @@
     "cette ligne en haut",
     "monte",
     "montre",
+    "montez",
+    "bonté",
     "précédente ligne"
   ],
   "ecrire_chiffre": [
@@ -107,6 +116,14 @@
     "ecrire lettre",
     "écrire lettres",
     "écrire lettre"
+  ],
+  "lettre": [
+    "lettre",
+    "lettres"
+  ],
+  "chiffre": [
+    "chiffre",
+    "chiffres"
   ],
   "a": [
     "ah"
@@ -598,13 +615,17 @@
     "apprendre lettres"
   ],
   "editeur": [
+    "edition",
     "éditeur",
+    "editeur les",
+    "cet éditeur",
     "l'éditeur",
     "hésiter",
     "codage",
     "code",
     "ce travail",
     "travail",
+    "travailler",
     "au travail",
     "boulot"
   ],
@@ -636,14 +657,6 @@
   "precedent": [
     "précédent"
   ],
-  "list_tabs": [
-    "les onglets",
-    "le anglais",
-    "les anglais",
-    "les enjeux",
-    "les ongles",
-    "liste"
-  ],
   "current_tab": [
     "titre",
     "document",
@@ -651,11 +664,33 @@
     "onglet",
     "l'onglet"
   ],
-  "ouvrir": [
-    "ouvrir"
+  "open": [
+    "ouvrir",
+    "pour ouvrir",
+    "ouvert",
+    "ouverte",
+    "ouvrez"
   ],
   "fermer_onglet": [
     "fermer",
     "fermer onglet"
+  ],
+  "ok": [
+    "ok",
+    "okay"
+  ],
+  "select_line": [
+    "sélectionnez ligne",
+    "sélectionne ligne",
+    "sélectionne une ligne",
+    "sélectionnez lignée",
+    "sélectionnez les lignes",
+    "sélectionnez la ligne"
+  ],
+  "find": [
+    "chercher"
+  ],
+  "micro": [
+    "micro"
   ]
 }

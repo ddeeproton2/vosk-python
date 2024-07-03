@@ -32,38 +32,38 @@ function speech(msg, clientIP){
 
 function char_to_word(msg){
     msg = msg.replaceAll(" ", " espace ");
-    msg = msg.replaceAll(".", "point");
-    msg = msg.replaceAll(",", "virgule");
-    msg = msg.replaceAll("+", "plus");
-    msg = msg.replaceAll("-", "tiret ou moins");
-    msg = msg.replaceAll("(", "parenthèse ouvrante");
-    msg = msg.replaceAll(")", "parenthèse fermante");
-    msg = msg.replaceAll('"', "double guillemets");
-    msg = msg.replaceAll("'", "apostrophe");
-    msg = msg.replaceAll("!", "point d'exclamation");
-    msg = msg.replaceAll("?", "point d'interrogation");
-    msg = msg.replaceAll(":", "deux-points");
-    msg = msg.replaceAll(";", "point-virgule");
-    msg = msg.replaceAll("/", "slash");
-    msg = msg.replaceAll("\\", "anti-slash");
-    msg = msg.replaceAll("@", "arobase");
-    msg = msg.replaceAll("#", "dièse");
-    msg = msg.replaceAll("$", "dollar");
-    msg = msg.replaceAll("%", "pourcent");
-    msg = msg.replaceAll("^", "chapeau");
-    msg = msg.replaceAll("&", "et commercial");
-    msg = msg.replaceAll("*", "étoile");
-    msg = msg.replaceAll("_", "souligné");
-    msg = msg.replaceAll("=", "égal");
-    msg = msg.replaceAll("{", "accolade ouvrante");
-    msg = msg.replaceAll("}", "accolade fermante");
-    msg = msg.replaceAll("[", "crochet ouvrant");
-    msg = msg.replaceAll("]", "crochet fermant");
-    msg = msg.replaceAll("<", "plus petit que ou inférieur");
-    msg = msg.replaceAll(">", "plus grand que ou supérieur");
-    msg = msg.replaceAll("|", "barre verticale");
-    msg = msg.replaceAll("	", "tabulation");
-    msg = msg.replaceAll("`", "accent grave inversé");
+    msg = msg.replaceAll(".", "point.");
+    msg = msg.replaceAll(",", "virgule.");
+    msg = msg.replaceAll("+", "plus.");
+    msg = msg.replaceAll("-", "tiret ou moins.");
+    msg = msg.replaceAll("(", "parenthèse ouvrante.");
+    msg = msg.replaceAll(")", "parenthèse fermante.");
+    msg = msg.replaceAll('"', "double guillemets.");
+    msg = msg.replaceAll("'", "apostrophe.");
+    msg = msg.replaceAll("!", "point d'exclamation.");
+    msg = msg.replaceAll("?", "point d'interrogation.");
+    msg = msg.replaceAll(":", "deux-points.");
+    msg = msg.replaceAll(";", "point-virgule.");
+    msg = msg.replaceAll("/", "slash.");
+    msg = msg.replaceAll("\\", "anti-slash.");
+    msg = msg.replaceAll("@", "arobase.");
+    msg = msg.replaceAll("#", "dièse.");
+    msg = msg.replaceAll("$", "dollar.");
+    msg = msg.replaceAll("%", "pourcent.");
+    msg = msg.replaceAll("^", "chapeau.");
+    msg = msg.replaceAll("&", "et commercial.");
+    msg = msg.replaceAll("*", "étoile.");
+    msg = msg.replaceAll("_", "souligné.");
+    msg = msg.replaceAll("=", "égal.");
+    msg = msg.replaceAll("{", "accolade ouvrante.");
+    msg = msg.replaceAll("}", "accolade fermante.");
+    msg = msg.replaceAll("[", "crochet ouvrant.");
+    msg = msg.replaceAll("]", "crochet fermant.");
+    msg = msg.replaceAll("<", "plus petit que ou inférieur.");
+    msg = msg.replaceAll(">", "plus grand que ou supérieur.");
+    msg = msg.replaceAll("|", "barre verticale.");
+    msg = msg.replaceAll("	", "tabulation.");
+    msg = msg.replaceAll("`", "accent grave inversé.");
     msg = msg.replaceAll("£", " Le curseur est ici. ");
     return msg;
 }
@@ -128,11 +128,9 @@ class VocalCommand {
     }
   
     createDir(dirname){
-      dir.exists(dirname).then(exists => {
-        if(!exists){
-          dir.createDirectory(dirname);
-        }
-      });
+      if(!dir.exists(dirname)){
+        dir.createDirectory(dirname);
+      }
     }
   
     isCommand(cmd, msg){
@@ -263,6 +261,7 @@ class VocalCommand {
             }
             return;
         }
+
         if(["non"].indexOf(msg) !== -1){
             if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
                 speech("Annulation du mot "+this.question+". Vous n'avez plus rien en mémoire", this.clientIPv4);
@@ -653,140 +652,375 @@ class VocalCommand {
       this.nodeserver = nodeserver;
       this.working_mode = "";
       this.chars_list = 'abcdefghijklmnopqrstuvwxyz .,+-()"\'!?:;/\\@#$%^&*_={}[]<>|	`';
+      this.tabs = [];
       this.self = self;
+      this.old = [];
     }
     start(){
       this.self.currentMode = "editeur";
       speech("Vous lancez le mode editeur.", this.clientIPv4);
-    }
+    } 
     work(msg){
-        let vc = this.self;
-        if(this.working_mode === ""){
-            if(['annuler'].indexOf(msg) !== -1 || vc.isCommand('annuler', msg)){
-                this.self.currentMode = "";
-                speech("Sortie du mode editeur.", this.clientIPv4);
-                return;
-            }
-    
-            if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
-                //speech("Lecture de visual code", this.clientIPv4);
-                //this.vscode_read(this.nodeserver);
-                this.vscode_readposition(this.nodeserver);
-                return;
-            }
-            if(vc.isCommand('ligne', msg)){
-                vscode_execute_code(`
-                    let currentLine = cmd.currentLine();
-                    let currentChar = cmd.currentChar();
-                    cmd.post("http://`+this.nodeserver+`/speak", {
-                      msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
-                    });
-                `);
-                return;
-            }
-    
-            if(vc.isCommand('list_tabs', msg)){
-                this.vscode_tabs(this.nodeserver);
-                return;
-            }
-    
-            if(vc.isCommand('current_tab', msg)){
-                this.vscode_speak_current_tab(this.nodeserver);
-                return;
-            }
-    
-            if(vc.isCommand('ouvrir', msg)){
-                // TODO l'ouverture
-                //this.vscode_switchToEditor(this.nodeserver,filename);
-                return;
-            }
+      let vc = this.self;
 
-            if(vc.isCommand('fermer_onglet', msg)){
-                this.vscode_close_active_tab(this.nodeserver);
-                return;
-            }
-    
-            if(vc.isCommand('lire_position', msg)){
-                this.vscode_readposition(this.nodeserver);
-                return;
-            }
-    
-            if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
-                speech("Passe à la ligne suivante", this.clientIPv4);
-                this.vscode_nextline(this.nodeserver);
-                return;
-            }
-    
-            if(['ligne précédente'].indexOf(msg) !== -1 || vc.isCommand('lignes_precedantes', msg)){
-                speech("Passe à la ligne précédente", this.clientIPv4);
-                this.vscode_prevline(this.nodeserver);
-                return;
-            }
-    
-    
-            if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
-                speech("Epelez votre chiffre", this.clientIPv4);
-                this.working_mode = "spell_number";
-                return;
-            }
-    
-            if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
-                speech("Epelez votre lettre", this.clientIPv4);
-                this.working_mode = "spell_char";
-                return;
-            }
-    
-            if(msg === 'nouvelle ligne' || vc.isCommand('nouvelle_ligne', msg)){
-                this.vscode_addnewline(this.nodeserver);
-                return;
-            }
-    
-            if(msg === 'effacer avant' || vc.isCommand('effacer_avant', msg)){
-                this.vscode_deletebefore(this.nodeserver);
-                return;
-            }
-            if(msg === 'effacer après' || vc.isCommand('effacer_apres', msg)){
-                this.vscode_deleteafter(this.nodeserver);
-                return;
-            }
 
-            if(['suivant','après','avancer','prochain','flèche droite'].indexOf(msg) !== -1 || vc.isCommand('suivant', msg)){
-                this.vscode_cursorMoveToNextChar(this.nodeserver);
-                return;
-            }
-    
-            if(['précédent','avant','reviens','reculez','fléche gauche'].indexOf(msg) !== -1 || vc.isCommand('precedent', msg)){
-                this.vscode_cursorMoveToPreviousChar(this.nodeserver);
-                return;
-            }
-    
+      //===============
+      if(this.working_mode === "spell_number"){
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+            this.working_mode = "";
+            speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
+            return;
         }
-        //===============
-        if(this.working_mode === "spell_number"){
-                if(msg === 'annuler' || vc.isCommand('annuler', msg)){
-                    this.working_mode = "";
-                    speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
-                    return;
-                }
-                var selected = this.getVoiceToNumber(msg);
-                if(selected !== ""){
-                    console.log(selected);
-                    this.vscode_writemsg(selected, this.nodeserver);
-                }
+        var selected = this.getVoiceToNumber(msg);
+        if(selected !== ""){
+            console.log(selected);
+            this.vscode_writemsg(selected, this.nodeserver);
+        }
+      }
+      
+      //===============
+      if(this.working_mode === "spell_char"){
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+          this.working_mode = "";
+          speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
+          return;
+        }
+        var selected = this.getVoiceToChar(msg);
+        if(selected !== ""){
+          this.vscode_writemsg(selected, this.nodeserver);
+        }
+      }
+      //===============
+
+      if(this.working_mode === "spell_number_menu"){
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+          this.working_mode = "";
+          speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
+          return;
+        }
+        if(msg === 'ok' || vc.isCommand('ok', msg)){
+          this.working_mode = "";
+          if(dir.exists(this.files[this.final_number])){
+            console.log("Ouverture du dossier. "+this.filesnames[this.final_number]);
+            this.open(this.files[this.final_number]+"/");
+            return;
+          }
+          if(file.exists(this.files[this.final_number])){
+            console.log("Ouverture du fichier. "+this.files[this.final_number]);
+            this.vscode_openfile(this.nodeserver, this.files[this.final_number]);
+            return;
+          }
+          return;
+        }
+        var selected = this.getVoiceToNumber(msg);
+        if(selected !== ""){
+          console.log(selected);
+          this.final_number += selected; 
+          //this.vscode_writemsg(selected, this.nodeserver);
+        }
+      }
+      //===============
+
+      if(this.working_mode === "spell_number_find"){
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+            this.working_mode = "";
+            speech("Sortie du mode chercher un chiffre.", this.clientIPv4);
+            return;
+        }
+        if(msg === 'chiffre' || vc.isCommand('chiffre', msg)){
+          this.working_mode = "spell_number_find";
+          speech("Chercher mode chiffre", this.clientIPv4);
+        }
+        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+          this.working_mode = "spell_char_find";
+          speech("Chercher mode lettres", this.clientIPv4);
+        }
+        if(["non"].indexOf(msg) !== -1){
+          if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
+              speech("Annulation du mot "+this.final_find_search+". Vous n'avez plus rien en mémoire", this.clientIPv4);
+              this.final_find_search = "";
+          }else{
+              speech("Annulation du mot "+this.final_find_search+". Votre recherche restante est "+this.old[this.old.length - 1], this.clientIPv4);
+              this.final_find_search = this.old[this.old.length - 1];
+              this.old.pop(); // remove last item
+          }
+          return;
+        }
+        if(msg === 'ok' || vc.isCommand('ok', msg)){
+          this.working_mode = "";
+          let msg_protected = this.final_find_search.replaceAll("'", "\'");
+          this.vscode_execute_code(`
+            let msg = '`+msg_protected+`';
+            cmd.findText(msg);
+          `);
+          return;
+        }
+        var selected = this.getVoiceToNumber(msg);
+        if(selected !== ""){
+            //console.log(selected);
+            //this.vscode_writemsg(selected, this.nodeserver);
+            if(this.final_find_search !== ""){
+              this.old.push(this.final_find_search);
+            }
+            this.final_find_search += selected; 
+            console.log(this.final_find_search);
+            speech(char_to_word(selected), this.clientIPv4);
+        }
+      }
+      
+      //===============
+      if(this.working_mode === "spell_char_find"){
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+          this.working_mode = "";
+          speech("Sortie du mode chercher une lettre.", this.clientIPv4);
+          return;
+        }
+        if(msg === 'chiffre' || vc.isCommand('chiffre', msg)){
+          this.working_mode = "spell_number_find";
+          speech("Chercher mode chiffre", this.clientIPv4);
+          return;
+        }
+        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+          this.working_mode = "spell_char_find";
+          speech("Chercher mode lettres", this.clientIPv4);
+          return;
+        }
+        if(["non"].indexOf(msg) !== -1){
+          if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
+              speech("Annulation du mot "+this.final_find_search+". Vous n'avez plus rien en mémoire", this.clientIPv4);
+              this.final_find_search = "";
+          }else{
+              speech("Annulation du mot "+this.final_find_search+". Votre recherche restante est "+this.old[this.old.length - 1], this.clientIPv4);
+              this.final_find_search = this.old[this.old.length - 1];
+              this.old.pop(); // remove last item
+          }
+          return;
+        }
+        if(msg === 'ok' || vc.isCommand('ok', msg)){
+          this.working_mode = "";
+          let msg_protected = this.final_find_search.replaceAll("'", "\'");
+          this.vscode_execute_code(`
+            let msg = '`+msg_protected+`';
+            cmd.findText(msg);
+          `);
+          return;
+        }
+        var selected = this.getVoiceToChar(msg);
+        if(selected !== ""){
+          //this.vscode_writemsg(selected, this.nodeserver);
+          if(this.final_find_search !== ""){
+            this.old.push(this.final_find_search);
+          }
+          this.final_find_search += selected; 
+          console.log(this.final_find_search);
+          speech(char_to_word(selected), this.clientIPv4);
+        }
+      }
+      //===============
+      
+      if(this.working_mode === "find_menu"){
+        this.final_find_search = ""; 
+        if(msg === 'chiffres' || vc.isCommand('chiffre', msg)){
+          this.working_mode = "spell_number_find";
+          speech("Chercher mode chiffre", this.clientIPv4);
+        }
+        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+          this.working_mode = "spell_char_find";
+          speech("Chercher mode lettres", this.clientIPv4);
+        }
+        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+          this.working_mode = "";
+          speech("Sortie du mode chercher un mot.", this.clientIPv4);
+          return;
+        }
+      }
+      //===============
+
+      if(this.working_mode === ""){
+  
+        if(vc.isCommand('find', msg)){
+          this.working_mode = "find_menu";
+          speech("Voulez-vous épeller des chiffres ou des lettres ?", this.clientIPv4);
+          /*
+          this.vscode_execute_code(`
+            cmd.findText("Ligne");
+          `);
+          */
+          return;
+        }
+
+        if(['annuler'].indexOf(msg) !== -1 || vc.isCommand('annuler', msg)){
+          this.self.currentMode = "";
+          speech("Sortie du mode editeur.", this.clientIPv4);
+          return;
+        }
+
+        if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
+          //this.vscode_readposition(this.nodeserver);
+          this.vscode_execute_code(`
+            let currentLine = cmd.currentLine() + 1;
+            let currentChar = cmd.currentChar() + 1;
+            let before = cmd.readCurrentLineBeforePosition();
+            let after = cmd.readCurrentLineAfterPosition();
+            if(before+after === ""){
+              cmd.post("http://`+this.nodeserver+`/speak", {msg: "Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+". La ligne est vide"});
+            }else{
+              cmd.post("http://`+this.nodeserver+`/speak", {msg: "Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+". "+before+after+". J'épelle."});
+              cmd.post("http://`+this.nodeserver+`/spell", {msg:before+"£"+after});
+            }
+          `);
+          return;
+        }
+
+        if(vc.isCommand('ligne', msg)){
+          this.vscode_execute_code(`
+            let currentLine = cmd.currentLine();
+            let currentChar = cmd.currentChar();
+            cmd.post("http://`+this.nodeserver+`/speak", {
+              msg:"Vous êtes à la ligne "+currentLine+". Caractère "+currentChar+"."
+            });
+          `);
+          return;
+        }
+
+        /*
+        // ======================
+        // Bad code
+        if(vc.isCommand('list_tabs', msg)){
+            this.vscode_tabs(this.nodeserver);
+            return;
+        }
+
+        json voice:
+          "list_tabs": [
+            "les onglets",
+            "le anglais",
+            "les anglais",
+            "les enjeux",
+            "les ongles",
+            "liste"
+          ],
+        // ======================
+        */
+
+        if(vc.isCommand('current_tab', msg)){
+          this.vscode_speak_current_tab(this.nodeserver);
+          return;
+        }
+
+        if(vc.isCommand('fermer_onglet', msg)){
+          this.vscode_close_active_tab(this.nodeserver);
+          return;
+        }
+
+        if(vc.isCommand('lire_position', msg)){
+          this.vscode_readposition(this.nodeserver);
+          return;
+        }
+
+        if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
+          speech("Passe à la ligne suivante", this.clientIPv4);
+          this.vscode_nextline(this.nodeserver);
+          return;
+        }
+
+        if(['ligne précédente'].indexOf(msg) !== -1 || vc.isCommand('lignes_precedantes', msg)){
+          speech("Passe à la ligne précédente", this.clientIPv4);
+          this.vscode_prevline(this.nodeserver);
+          return;
+        }
+
+        if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
+          speech("Epelez votre chiffre", this.clientIPv4);
+          this.working_mode = "spell_number";
+          return;
+        }
+
+        if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
+          speech("Epelez votre lettre", this.clientIPv4);
+          this.working_mode = "spell_char";
+          return;
+        }
+
+        if(msg === 'nouvelle ligne' || vc.isCommand('nouvelle_ligne', msg)){
+          this.vscode_addnewline(this.nodeserver);
+          return;
+        }
+
+        if(msg === 'effacer avant' || vc.isCommand('effacer_avant', msg)){
+          this.vscode_deletebefore(this.nodeserver);
+          return;
+        }
+        if(msg === 'effacer après' || vc.isCommand('effacer_apres', msg)){
+          this.vscode_deleteafter(this.nodeserver);
+          return;
+        }
+
+        if(['suivant','après','avancer','prochain','flèche droite'].indexOf(msg) !== -1 || vc.isCommand('suivant', msg)){
+          this.vscode_cursorMoveToNextChar(this.nodeserver);
+          return;
+        }
+
+        if(['précédent','avant','reviens','reculez','fléche gauche'].indexOf(msg) !== -1 || vc.isCommand('precedent', msg)){
+          this.vscode_cursorMoveToPreviousChar(this.nodeserver);
+          return;
         }
         
-        //===============
-        if(this.working_mode === "spell_char"){
-                if(msg === 'annuler' || vc.isCommand('annuler', msg)){
-                    this.working_mode = "";
-                    speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
-                    return;
-                }
-                var selected = this.getVoiceToChar(msg);
-                if(selected !== ""){
-                    this.vscode_writemsg(selected, this.nodeserver);
-                }
+        if(vc.isCommand('open', msg)){
+          const directoryPath = dir.currentdir(); 
+          //console.log("OPEN "+directoryPath);
+          this.open(directoryPath);
+          return;
         }
+
+
+        if(vc.isCommand('select_line', msg)){
+          this.vscode_execute_code(`
+            let isSelected = cmd.selectCurrentLine();
+            if(isSelected){
+              cmd.post("http://`+this.nodeserver+`/speak", {msg: "Ligne sélectionnée"});
+            }else{
+              cmd.post("http://`+this.nodeserver+`/speak", {msg: "Erreur, la Ligne n'est pas sélectionnée"});
+            }
+          `);
+          return;
+        }
+      
+      }
+        
+    }
+    //=============
+    open(directoryPath){
+      // Lister le contenu d'un répertoire (full path)
+      dir.readDirectory(directoryPath).then(files => {
+        this.working_mode = "spell_number_menu";
+        this.files = files; 
+        this.files.unshift( dir.parent(directoryPath) ); 
+        this.final_number = "";
+
+        // List only files names for speaking
+        dir.listDirectory(directoryPath).then(filesnames => {
+          var f, msg = "";
+          msg += "Dossier actuel. "+ dir.noEndingSlash(directoryPath).replaceAll("/", ". slash. ")+".  Sélectionnez le fichier désiré. ";
+          console.log("Dossier actuel:");
+          console.log(directoryPath);
+          console.log("Sélectionnez le fichier désiré:")
+          f = "Dites 0. Pour le dossier parent. ";
+          msg += f;
+          console.log(f);
+
+          for(var i in filesnames){
+            f = (parseInt(i)+1) + ". " + filesnames[i]+". ";
+            msg += f;
+            console.log(f);
+          }
+
+          this.filesnames = filesnames; 
+          this.filesnames.unshift( file.filename( dir.parent(directoryPath) ) );
+          speech(msg, this.clientIPv4);
+        });
+
+      });
     }
     //=============
     getVoiceToChar(msg){
@@ -832,20 +1066,23 @@ class VocalCommand {
       `);
     }
 
+    /*
+    Don't do what expected
     //=============
     vscode_tabs(nodeserver){
       console.log('tabs');
       this.vscode_execute_code(`
-          let tabs = cmd.listOpenEditors();
-          
+          let tabs = vscode.workspace.textDocuments;
           let files = [];
+          let count = 1;
           for(var i in tabs){
-            files.push(cmd.getFileName(tabs[i].uri.fsPath));
+            files.push(" "+count+". "+cmd.getFileName(tabs[i].uri.fsPath));
+            count++;
           }
-          
           cmd.post("http://`+nodeserver+`/speak", {msg:"Liste des onglets ouverts "+JSON.stringify(files).replaceAll('"',"")});
       `);
     }
+    */
     vscode_speak_current_tab(nodeserver){
       this.vscode_execute_code(`
           let tab = cmd.getActiveEditorInfo();
@@ -863,14 +1100,15 @@ class VocalCommand {
       `);
     }
     vscode_openfile(nodeserver, filename){
+      filename = file.parse(filename);
+      this.tabs.push(filename);
       let filename_protected = filename.replaceAll("'", "\'");
-
       this.vscode_execute_code(`
-          if(cmd.openNewEditor(`+filename_protected+`)){
-            cmd.post("http://`+nodeserver+`/speak", {msg:"Document ouvert "+`+filename_protected+`});
-          }else{
-            cmd.post("http://`+nodeserver+`/speak", {msg:"Erreur. Document pas ouvert "+`+filename_protected+`});
-          }
+        try{
+          cmd.open('`+filename_protected+`');
+        } catch (error) {
+          cmd.post("http://`+nodeserver+`/speak", {msg:"Erreur: "+error});
+        }
       `);
     }
     vscode_close_active_tab(nodeserver){
@@ -1040,6 +1278,7 @@ class MainSpeakCommands{
         this.learning_command = new LearningCommand(config.config_speech_ip, this.vc);
         this.visual = new VisualCodeCommands(config.config_speech_ip, this.vc);
         this.questionllm = new QuestionToLLM(config.config_speech_ip, this.vc);
+        this.isMicro = true;
     }
     speech(msg, clientIP){
         //console.log("To "+clientIP+" Say "+msg);
@@ -1072,7 +1311,7 @@ class MainSpeakCommands{
           newmsg = newmsg.concat("§" + msg.charAt(i));
         }
         newmsg = char_to_word(newmsg);
-        newmsg = newmsg.replaceAll("§", ". ");
+        newmsg = newmsg.replaceAll("§", "... ");
         speech(newmsg, clientIP);
     }
     ask(msg, onresult){ 
@@ -1080,156 +1319,168 @@ class MainSpeakCommands{
         internet.ask_anythinglm(msg, "general", false, onresult, config.anythingllm.bearer);
         internet.ask_anythinglm(msg, "nodejs", true, onresult, config.anythingllm.bearer);
     }
-      
-
     speak(msg, clientIPv4){
+      if(this.vc.isCommand('micro', msg)){
+        this.isMicro = !this.isMicro;
+        if(this.isMicro){
+          this.speech("Le micro est activé", clientIPv4);
+        }else{
+          this.speech("Le micro est désactivé", clientIPv4);
+        }
+      }
+      if(!this.isMicro){ console.log("[Micro OFF] "+msg); return; }
 
-        // ===================
-        if(this.vc.typeSpeak === "alphabet" || this.vc.typeSpeak === "numeric"){
-            if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
+      // ===================
+      if(this.vc.typeSpeak === "alphabet" || this.vc.typeSpeak === "numeric"){
+          if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
             if(this.questionllm.spelling !== ""){
                 this.vc.typeSpeak = "";
                 if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                    if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
-                        this.questionllm.old.push(this.questionllm.question);
-                    }
-                    this.questionllm.question += this.questionllm.spelling + " ";
-                    this.speech(this.questionllm.question, clientIPv4);
+                  if(this.questionllm.question !== "" && this.questionllm.question !== undefined){
+                      this.questionllm.old.push(this.questionllm.question);
+                  }
+                  this.questionllm.question += this.questionllm.spelling + " ";
+                  this.speech(this.questionllm.question, clientIPv4);
                 }
             }else{
-                this.speech("Pas de caractère dicté", clientIPv4);
+              this.speech("Pas de caractère dicté", clientIPv4);
             }
             return;
-            }
-            if(["répète"].indexOf(msg) !== -1){
+          }
+          if(["répète"].indexOf(msg) !== -1){
             if(this.questionllm.spelling === ""){
-                this.speech("Pas de caractère en mémoire à répéter", clientIPv4);
+              this.speech("Pas de caractère en mémoire à répéter", clientIPv4);
             }else{
-                this.speech(this.questionllm.spelling, clientIPv4);
+              this.speech(this.questionllm.spelling, clientIPv4);
             }
             return;
-            }
-            if(["non"].indexOf(msg) !== -1){
+          }
+          if(["non"].indexOf(msg) !== -1){
             if(this.questionllm.spelling_old.length == 0 || this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1] === ""){
-                this.speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
-                questionllm.spelling = "";
+              this.speech("Annulation du mot "+this.questionllm.spelling+". Vous n'avez plus rien en mémoire", clientIPv4);
+              questionllm.spelling = "";
             }else{
-                this.speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
-                this.questionllm.spelling = this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1];
-                this.questionllm.spelling_old.pop(); // remove last item
+              this.speech("Annulation du mot "+this.questionllm.spelling+". Votre question restante est "+this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1], clientIPv4);
+              this.questionllm.spelling = this.questionllm.spelling_old[this.questionllm.spelling_old.length - 1];
+              this.questionllm.spelling_old.pop(); // remove last item
             }
             return;
-            }
-        }
-        if(this.vc.typeSpeak === "alphabet"){
-            if(this.vc.isCommandAlphabet(msg)){
-                if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                    this.questionllm.spelling_old.push(this.questionllm.spelling);
-                }
-                this.questionllm.spelling += this.vc.getCommandNumeric(msg);
-                this.speech(this.questionllm.spelling, clientIPv4);
-            }
-            return;
-        }
-        if(this.vc.typeSpeak === "numeric"){
-            if(this.vc.isCommandNumeric(msg)){
-                if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
-                    this.questionllm.spelling_old.push(this.questionllm.spelling);
-                }
-                this.questionllm.spelling += vc.getCommandNumeric(msg);
-                this.speech(this.questionllm.spelling, clientIPv4);
-            }
-            return;
-        }
-        if(["dictée lettres"].indexOf(msg) !== -1){
-            this.vc.typeSpeak = "alphabet";
-            this.questionllm.spelling = "";
-            this.questionllm.spelling_old = [];
-            return;
-        }
-        if(["dictée chiffres","dites chiffres","zut ce chiffre"].indexOf(msg) !== -1){
-            this.vc.typeSpeak = "numeric";
-            this.questionllm.spelling = "";
-            this.questionllm.spelling_old = [];
-            return;
-        }
-        // =================== Ask LLM
-        if(this.vc.currentMode == "question"){
-            this.questionllm.add(msg);
-            return;
-        }
-        if(this.vc.isCommand('question', msg)){
-            this.questionllm.clientIPv4 = clientIPv4;
-            this.questionllm.start();
-            return;
-        }
-    
-    
-        // =================== Ask LLM for Visual Studio
-        if(this.vc.currentMode == "question_vscode"){
-            this.visual.ask(msg);
-            return;
-        }
-        if(this.vc.isCommand('vscode', msg)){
-            this.visual.clientIPv4 = clientIPv4;
-            this.visual.start();
-            return;
-        }
-        // =================== Learning Bases
-        if(this.vc.currentMode == "learning_command"){
-            this.learning_command.learn(msg);
-            return; 
-        }
-        if(['apprendre commande'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_commande', msg)){
-            this.learning_command.clientIPv4 = clientIPv4;
-            this.learning_command.start();
-            return;
-        }
-        // =================== Learning Numbers
-        if(this.vc.currentMode == "learning_numbers"){
-            this.learning_numbers.learn(msg);
-            return;
-        }
-        if(['apprendre chiffres'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_chiffres', msg)){
-            this.learning_numbers.clientIPv4 = clientIPv4;
-            this.learning_numbers.start();
-            return;
-        }
-        // =================== Learning Chars
-        if(this.vc.currentMode == "learning_chars"){
-            this.learning_chars.learn(msg);
-            return;
-        }
-        if(['apprendre lettre',"apprends de l'être"].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_lettres', msg)){
-            this.learning_chars.clientIPv4 = clientIPv4;
-            this.learning_chars.start();
-            return;
-        }
-        // =================== Editeur vscode
-        if(this.vc.currentMode == "editeur"){
-            this.editor.work(msg);
-            return;
-        }
-        if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg)){
-            this.editor.clientIPv4 = clientIPv4;
-            this.editor.nodeserver = config.nodeserver;
-            this.editor.start();
-            return;
-        }
-        // =================== Last commands (must be at the end)
-        if(this.vc.isCommand('repeter', msg)){
-            this.speech(startMessage, clientIPv4);
-            return;
-        }
-    
-        if(['test',"testé","tester"].indexOf(msg) !== -1){
-            this.tester();
-        }
+          }
+      }
+      if(this.vc.typeSpeak === "alphabet"){
+          if(this.vc.isCommandAlphabet(msg)){
+              if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                  this.questionllm.spelling_old.push(this.questionllm.spelling);
+              }
+              this.questionllm.spelling += this.vc.getCommandNumeric(msg);
+              this.speech(this.questionllm.spelling, clientIPv4);
+          }
+          return;
+      }
+      if(this.vc.typeSpeak === "numeric"){
+          if(this.vc.isCommandNumeric(msg)){
+              if(this.questionllm.spelling !== "" && this.questionllm.spelling !== undefined){
+                  this.questionllm.spelling_old.push(this.questionllm.spelling);
+              }
+              this.questionllm.spelling += vc.getCommandNumeric(msg);
+              this.speech(this.questionllm.spelling, clientIPv4);
+          }
+          return;
+      }
+      if(["dictée lettres"].indexOf(msg) !== -1){
+          this.vc.typeSpeak = "alphabet";
+          this.questionllm.spelling = "";
+          this.questionllm.spelling_old = [];
+          return;
+      }
+      if(["dictée chiffres","dites chiffres","zut ce chiffre"].indexOf(msg) !== -1){
+          this.vc.typeSpeak = "numeric";
+          this.questionllm.spelling = "";
+          this.questionllm.spelling_old = [];
+          return;
+      }
+      // =================== Ask LLM
+      if(this.vc.currentMode == "question"){
+          this.questionllm.add(msg);
+          return;
+      }
+      if(this.vc.isCommand('question', msg)){
+          this.questionllm.clientIPv4 = clientIPv4;
+          this.questionllm.start();
+          return;
+      }
+      // =================== Ask LLM for Visual Studio
+      if(this.vc.currentMode == "question_vscode"){
+          this.visual.ask(msg);
+          return;
+      }
+      if(this.vc.isCommand('vscode', msg)){
+          this.visual.clientIPv4 = clientIPv4;
+          this.visual.start();
+          return;
+      }
+      // =================== Learning Bases
+      if(this.vc.currentMode == "learning_command"){
+          this.learning_command.learn(msg);
+          return; 
+      }
+      if(['apprendre commande'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_commande', msg)){
+          this.learning_command.clientIPv4 = clientIPv4;
+          this.learning_command.start();
+          return;
+      }
+      // =================== Learning Numbers
+      if(this.vc.currentMode == "learning_numbers"){
+          this.learning_numbers.learn(msg);
+          return;
+      }
+      if(['apprendre chiffres'].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_chiffres', msg)){
+          this.learning_numbers.clientIPv4 = clientIPv4;
+          this.learning_numbers.start();
+          return;
+      }
+      // =================== Learning Chars
+      if(this.vc.currentMode == "learning_chars"){
+          this.learning_chars.learn(msg);
+          return;
+      }
+      if(['apprendre lettre',"apprends de l'être"].indexOf(msg) !== -1 || this.vc.isCommand('apprendre_lettres', msg)){
+          this.learning_chars.clientIPv4 = clientIPv4;
+          this.learning_chars.start();
+          return;
+      }
+      // =================== Editeur vscode
+      if(this.vc.currentMode == "editeur"){
+          this.editor.work(msg);
+          return;
+      }
+      if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg)){
+          this.editor.clientIPv4 = clientIPv4;
+          this.editor.nodeserver = config.nodeserver;
+          this.editor.start();
+          return;
+      }
+      // =================== Last commands (must be at the end)
+      if(this.vc.isCommand('repeter', msg)){
+          this.speech(startMessage, clientIPv4);
+          return;
+      }
+  
+      if(['test',"testé","tester"].indexOf(msg) !== -1){
+          this.tester();
+      }
 
-        return;
-        questionllm = new QuestionToLLM(clientIPv4, vc);
-        questionllm.start();
-        questionllm.add(msg);
+
+
+      //let filename = "C:/Share/Programmation/Python/reconnaissanceVocale/assist/others/NodeJS/socketionodejs/config.js";
+      //this.editor.vscode_openfile(config.nodeserver, filename);
+      
+
+      return;
+
+      questionllm = new QuestionToLLM(clientIPv4, vc);
+      questionllm.start();
+      questionllm.add(msg);
 
     }
     tester(){

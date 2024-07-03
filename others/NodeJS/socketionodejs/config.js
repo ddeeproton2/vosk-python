@@ -11,6 +11,7 @@ module.exports = {
     //      https://github.com/ddeeproton2/vosk-python/blob/main/others/VoiceTextToSpeechHTTP.exe
     //  Python
     //      https://github.com/ddeeproton2/vosk-python/tree/main
+    //config_speech_ip: '192.168.1.57',
     config_speech_ip: '192.168.1.52',
     //config_speech_ip: '127.0.0.1',
     config_speech_port: '1225',

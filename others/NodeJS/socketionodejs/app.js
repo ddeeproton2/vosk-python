@@ -336,10 +336,13 @@ console.log("Commands:");
 console.log("Say question, to ask something to the IA");
 console.log("Say code, to ask something to the IA from the position of the cursor in VSCode editor");
 // We should hear the text here if both servers are started
-const startMessage = "Dites question pour me demander quelque chose. Dites question visual studio ou Apprendre commande, ou Apprendre lettre, ou Apprendre chiffres, ou éditeur, ou répêter.";
-console.log('You shoud hear this: "'+startMessage+'"');
-speakcommands.speech(startMessage, config.config_speech_ip);
+
+//const startMessage = "Dites question pour me demander quelque chose. Dites question visual studio ou Apprendre commande, ou Apprendre lettre, ou Apprendre chiffres, ou éditeur, ou répêter.";
+//console.log('You shoud hear this: "'+startMessage+'"');
+//speakcommands.speech(startMessage, config.config_speech_ip);
+
 console.log("=================================================================");
+
 
 // ============== Serveur en mode websocket =================
 if(config.anythingllm.is_server){

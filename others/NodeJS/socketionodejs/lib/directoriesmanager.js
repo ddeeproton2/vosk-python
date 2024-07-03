@@ -10,7 +10,11 @@ class DirectoriesManager {
   }
 
   getCurrentDirectory() {
-    return __dirname;
+    return this.parse(__dirname)+"/";
+  }
+
+  currentdir(){
+    return this.parse(process.cwd())+"/";
   }
 
   /**
@@ -19,19 +23,42 @@ class DirectoriesManager {
    * @param {string} path Chemin du répertoire
    * @returns {Promise<boolean>} Promesse résolue avec true si le répertoire existe, false sinon
    */
-  async exists(path) {
-    try {
-      await fs.promises.access(path);
-      const stats = await fs.promises.stat(path);
+  exists(path) {
+    try{
+      path = this.parse(path);
+      const stats = fs.lstatSync(path);
+      /*
+      console.log(`Is file: ${stats.isFile()}`);
+      console.log(`Is directory: ${stats.isDirectory()}`);
+      console.log(`Is symbolic link: ${stats.isSymbolicLink()}`);
+      console.log(`Is FIFO: ${stats.isFIFO()}`);
+      console.log(`Is socket: ${stats.isSocket()}`);
+      console.log(`Is character device: ${stats.isCharacterDevice()}`);
+      console.log(`Is block device: ${stats.isBlockDevice()}`);
+      */
       return stats.isDirectory();
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return false;
-      } else {
-        return false;
-        throw error;
-      }
+
+    }catch(error){
+      console.log("directoriesmanager.js Error: "+error);
     }
+
+    return false;
+  }
+  
+  parse(path){
+    return path.replaceAll("\\","/");
+  }
+  noEndingSlash(path){
+    if(path[path.length-1] === "/"){
+      path = path.substring(0, path.length-1);
+    }
+    return path;
+  }
+  parent(path){
+    path = this.noEndingSlash(path);
+    var data = path.split("/");
+    data.pop();
+    return data.join("/");
   }
 
   /**
@@ -82,6 +109,22 @@ class DirectoriesManager {
     return await fs.promises.readdir(path);
   }
 
+   /**
+   * Lit un dossier et retourne la liste des fichiers avec leur chemin complet.
+   * @param {string} dirPath - Le chemin du dossier à lire. (doit terminer par "/" ou "\\")
+   * @returns {Promise<string[]>} - Une promesse qui résout avec un tableau de chemins de fichiers complets.
+   */
+  async readDirectory(dirPath) {
+    return new Promise((resolve, reject) => {
+      fs.readdir(dirPath, (err, files) => {
+        if (err) {
+          return reject(err);
+        }
+        const fullPaths = files.map(file => dirPath+file);
+        resolve(fullPaths);
+      });
+    });
+  }
 
 }
 
@@ -114,6 +157,16 @@ dir.removeDirectory('old-project').then(() => {
 // Lister le contenu d'un répertoire
 dir.listDirectory('docs').then(files => {
   console.log('Contenu du répertoire docs :', files);
+});
+
+// Lister le contenu d'un répertoire (chemin absolut)
+const directoryPath = 'chemin/vers/votre/dossier'; // Remplacez par le chemin de votre dossier
+dir.readDirectory(directoryPath)
+.then(files => {
+    console.log('Liste des fichiers avec chemin complet :', files);
+})
+.catch(error => {
+    console.error('Erreur lors de la lecture du dossier :', error);
 });
 
 */

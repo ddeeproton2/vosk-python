@@ -14,8 +14,34 @@ class FilesManager {
     return __dirname;
   }
 
+
   exists(path) {
-    return fs.existsSync(path);
+    try{
+      path = this.parse(path);
+      const stats = fs.lstatSync(path);
+      /*
+      console.log(`Is file: ${stats.isFile()}`);
+      console.log(`Is directory: ${stats.isDirectory()}`);
+      console.log(`Is symbolic link: ${stats.isSymbolicLink()}`);
+      console.log(`Is FIFO: ${stats.isFIFO()}`);
+      console.log(`Is socket: ${stats.isSocket()}`);
+      console.log(`Is character device: ${stats.isCharacterDevice()}`);
+      console.log(`Is block device: ${stats.isBlockDevice()}`);
+      */
+      return stats.isFile();
+
+    }catch(error){
+      console.log("filesmanager.js Error: "+error);
+    }
+
+    return false;
+  }
+  parse(path){
+    return path.replaceAll("\\","/");
+  }
+  filename(path){
+    var p = path.split("/");
+    return p[p.length -1];
   }
 
   createFile(path) {
