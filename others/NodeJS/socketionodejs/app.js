@@ -292,9 +292,12 @@ app.post('/ask', (req, res) => {
 
 
 app.post('/spell', (req, res) => {
-  const msg = req.body.msg;
-  console.log(`spell msg : ${msg}`);
-  speakcommands.spell(msg, config.config_speech_ip);
+  const spell = req.body.spell;
+  const msg_start = req.body.msg_start;
+  const msg_end = req.body.msg_end;
+  //console.log(`spell : ${spell}`);
+  //console.log(`msg : ${msg}`);
+  speakcommands.spell(msg_start, spell, msg_end, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
 });
 
@@ -303,6 +306,14 @@ app.post('/speak', (req, res) => {
   console.log(`speak msg : ${msg}`);
   speakcommands.speech(msg, config.config_speech_ip);
   res.send('Données POST reçues avec succès !');
+});
+
+app.post('/learn', (req, res) => {
+  const msg = req.body.msg;
+  const name = req.body.name;
+  console.log(`learn name : ${name} msg : ${msg}`);
+  speakcommands.vc.add(name, msg);
+  res.send(`Données apprises name : ${name} msg : ${msg}`);
 });
 
 if(config.httpServer.enabled){

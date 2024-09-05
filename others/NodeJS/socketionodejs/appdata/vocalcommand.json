@@ -1,6 +1,7 @@
 {
   "0": [
-    "zéro"
+    "zéro",
+    "un héros"
   ],
   "1": [
     "un"
@@ -27,7 +28,11 @@
     "huit"
   ],
   "9": [
-    "neuf"
+    "neuf",
+    "note"
+  ],
+  "10": [
+    "dix"
   ],
   "annuler": [
     "sortir",
@@ -42,7 +47,11 @@
     "suivant",
     "next",
     "prochain",
+    "sinon",
+    "suis non",
+    "selon",
     "suivantes",
+    "la suivante",
     "suzanne",
     "fuyant",
     "une suivantes"
@@ -87,6 +96,8 @@
     "descends",
     "des champs",
     "les champs",
+    "ligne suivant",
+    "ligne suivante",
     "ligne suivantes",
     "descendre",
     "défendre",
@@ -95,6 +106,7 @@
     "les chambres"
   ],
   "lignes_precedantes": [
+    "les précédentes",
     "les lignes précédente",
     "ligne précédente",
     "line précédente",
@@ -144,7 +156,8 @@
     "f"
   ],
   "g": [
-    "j'ai"
+    "j'ai",
+    "g"
   ],
   "h": [
     "h"
@@ -169,7 +182,8 @@
     "ni trop",
     "nitro",
     "nager",
-    "nico"
+    "nico",
+    "elle n'a"
   ],
   "o": [
     "oh"
@@ -177,7 +191,8 @@
   "p": [
     "ps",
     "patrick",
-    "perso"
+    "perso",
+    "paix"
   ],
   "q": [
     "q",
@@ -197,7 +212,8 @@
     "the",
     "thierry",
     "thérèse",
-    "tronc"
+    "tronc",
+    "t'es"
   ],
   "u": [
     "hu",
@@ -217,13 +233,20 @@
   ],
   "y": [
     "ii grec",
-    "il grec"
+    "il grec",
+    "les gratte",
+    "les grecs",
+    "les break",
+    "grec",
+    "drake",
+    "une être"
   ],
   "z": [
     "z"
   ],
   "espace": [
-    "espace"
+    "espace",
+    "l'espace"
   ],
   "point": [
     "pont",
@@ -597,12 +620,16 @@
     "négatif",
     "nos"
   ],
-  "apprendre_commande": [
+  "learn": [
+    "apprendre",
+    "apprends"
+  ],
+  "learn_commands": [
     "apprendre commande",
     "apprends commande",
     "apprendre comment"
   ],
-  "apprendre_chiffres": [
+  "learn_numbers": [
     "a trois ans de chiffres",
     "apprendre chiffres",
     "à trois chiffres",
@@ -610,9 +637,10 @@
     "suite",
     "affronte chiffres"
   ],
-  "apprendre_lettres": [
+  "learn_letters": [
     "apprendre lettre",
-    "apprendre lettres"
+    "apprendre lettres",
+    "apprends de l'être"
   ],
   "editeur": [
     "edition",
@@ -625,6 +653,7 @@
     "code",
     "ce travail",
     "travail",
+    "j'y travaille",
     "travailler",
     "au travail",
     "boulot"
@@ -633,6 +662,10 @@
     "nouvelle ligne",
     "retour à la ligne",
     "ajoutez une ligne"
+  ],
+  "effacer_selection": [
+    "effacer selection",
+    "effacer ça"
   ],
   "effacer_avant": [
     "effacer avant",
@@ -671,7 +704,7 @@
     "ouverte",
     "ouvrez"
   ],
-  "fermer_onglet": [
+  "f]ermer_onglet": [
     "fermer",
     "fermer onglet"
   ],
@@ -688,9 +721,132 @@
     "sélectionnez la ligne"
   ],
   "find": [
-    "chercher"
+    "chercher",
+    "cherchais",
+    "cherchons"
   ],
   "micro": [
-    "micro"
+    "micro",
+    "métro",
+    "une micro",
+    "les croc",
+    "les crocs"
+  ],
+  "encore": [
+    "encore",
+    "continue"
+  ],
+  "copy": [
+    "copie",
+    "copie et",
+    "copier",
+    "copiez"
+  ],
+  "past": [
+    "coller",
+    "couler",
+    "cholet",
+    "colette",
+    "collège"
+  ],
+  "save": [
+    "sauver",
+    "sauvegarde",
+    "sauvegarder",
+    "enregistre",
+    "enregistrer",
+    "sont bienvenus",
+    "son père de",
+    "sont gardés",
+    "sa garde",
+    "regardez",
+    "ça j'avais"
+  ],
+  "undo": [
+    "revenir",
+    "revenez"
+  ],
+  "redo": [
+    "rétablir"
+  ],
+  "aide": [
+    "ed",
+    "aide",
+    "inde"
+  ],
+  "fullscreen": [
+    "les l'écran",
+    "plein écran",
+    "pénétrant",
+    "full screen",
+    "janet rang",
+    "d'un écran",
+    "ton écran",
+    "qu'un écran",
+    "un écran"
+  ],
+  "cut": [
+    "coupez",
+    "couper"
+  ],
+  "zoom_in": [
+    "zoomer",
+    "agrandir"
+  ],
+  "zoom_out": [
+    "dezoomer",
+    "réduire"
+  ],
+  "page_down": [
+    "page suivante",
+    "descends la page",
+    "descendre la page",
+    "descendre page",
+    "défendre page",
+    "défendre la page",
+    "des filets",
+    "filets",
+    "des fils",
+    "page en bas",
+    "descend d'une page",
+    "descendre d'une page",
+    "age suivantes",
+    "page fonde"
+  ],
+  "page_up": [
+    "page précédente",
+    "faut monter la page",
+    "monte la page",
+    "monter la page",
+    "montez la page",
+    "montez page",
+    "monter page",
+    "et page",
+    "monte d'une page",
+    "remonte d'une page",
+    "page en haut",
+    "les filets en haut",
+    "des filets en haut"
+  ],
+  "home": [
+    "début de la ligne",
+    "des de la ligne",
+    "aller au début",
+    "allez au début",
+    "début"
+  ],
+  "end": [
+    "aller à la fin",
+    "allez à la fin",
+    "fin de la ligne",
+    "fin de la ligne",
+    "fin"
+  ],
+  "terminal": [
+    "terminal",
+    "terminale"
+  ],
+  "godefinition": [
+    "définition"
   ]
 }
