@@ -28,6 +28,8 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       speech("Vous lancez le mode editeur.", this.clientIPv4);
     } 
     work(msg){
+      let selected_number = this.editor.vs_interface.getVoiceToNumber(msg);
+
       let vc = this.self;
       let vs_interface = this.vs_interface;
       //=====================================================================================
@@ -36,11 +38,43 @@ const VSInterface = require('./visualstudio/vsinterface.js');
 
       // Pour réindenter
       //vscode.commands.executeCommand(‘editor.action.formatDocument’);
-
+      ///
       // Ligne (dire numéro de ligne)
       if(vc.isCommand('aide', msg)){
         var msg = `
-        annuler, ligne, onglet ou titre, fermer onglet, ligne suivante, ligne précédente, ajoutez une ligne, effacer avant, effacer après, précédent ou fléche gauche, sélectionnez ligne, copier, coller, sauvegarder, revenir, rétablir, lire, écrire chiffre, écrire lettre, ouvrir, chercher 
+        micro,
+        annuler,         
+        ligne, 
+        onglet ou titre, 
+        fermer onglet, 
+        ligne suivante, 
+        ligne précédente, 
+        ajoutez une ligne, 
+        effacer avant, 
+        effacer après, 
+        précédent ou fléche gauche, 
+        sélectionnez ligne, 
+        couper,
+        copier, 
+        coller, 
+        sauvegarder, 
+        revenir, 
+        rétablir, 
+        plein ecran,
+        agrandir,
+        reduire,
+        page suivante,
+        page precedante,
+        debut ligne, 
+        fin de ligne,
+        terminale,
+        definition,
+        apprendre,
+        lire, 
+        écrire chiffre, 
+        écrire lettre, 
+        ouvrir, 
+        chercher 
         `;
         let msg_protected = msg.replaceAll("`", "\`");
         vs_interface.vscode_execute_code(`

@@ -305,6 +305,83 @@ class Connexions{
         });
     }
       
+    ollama_ask(ask){
+      var data = {
+          "model": "qwen2:0.5b",
+          "messages": [
+              {
+                  "role": "user",
+                  "content": ask
+              }
+          ],
+          "stream": false
+      };
+      const response = fetch('http://localhost:11434/api/chat', {
+       method: 'POST',
+       headers: {
+           'Content-Type': 'application/json',
+       },
+       body: JSON.stringify(data),
+     });
+     /*.then((reponse)=> {
+        reponse.text().then((rep)=>{
+          let r = JSON.parse(rep);
+          let msg = r.message.content;
+          console.log(msg);
+        });
+     });
+     */
+
+     return response;
+     
+    }
+
+    ollama_ask_old(ask){
+      var data = {
+          "model": "qwen2:0.5b",
+          "messages": [
+              {
+                  "role": "user",
+                  "content": ask
+              }
+          ],
+          "stream": false
+      };
+      const response = fetch('http://localhost:11434/api/chat', {
+       method: 'POST',
+       headers: {
+           'Content-Type': 'application/json',
+       },
+       body: JSON.stringify(data),
+     }).then((reponse)=> {
+        reponse.text().then((rep)=>{
+          let r = JSON.parse(rep);
+          let msg = r.message.content;
+          console.log(msg);
+        });
+     });
+     
+    }
+
+    ollama_generate(ask){
+      var data = {
+      "model": "qwen2:0.5b",
+      "prompt": ask,
+      "stream": false
+     };
+
+      const response = fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+     });
+     
+     console.log(reponse);
+
+    }
+
     server_udp(bindAddress = '0.0.0.0', port = 41234, onmessage){
         const dgram = require('dgram');
         const server = dgram.createSocket('udp4');

@@ -280,12 +280,24 @@ app.post('/ask', (req, res) => {
   const msg = req.body.msg;
   console.log(`ask msg : ${msg}`);
   speakcommands.speech(msg, config.config_speech_ip);
+  /*
   speakcommands.ask(msg, function(result){
       console.log("Réponse");
       console.log(result);
       //result = result.replaceAll("*","");
-      speakcommands.speech(result, config.config_speech_ip);
+      speakcommands.speech(result, config.config_speech_ip);      
   });
+*/
+  internet.ollama_ask(msg).then((response)=> {
+    response.text().then((rep)=>{
+      let r = JSON.parse(rep);
+      let reponse = r.message.content;
+      console.log(reponse);
+      speakcommands.speech(reponse, config.config_speech_ip);    
+    });
+  });;
+  
+
 
   res.send('Données POST reçues avec succès !');
 });
@@ -354,6 +366,64 @@ console.log("Say code, to ask something to the IA from the position of the curso
 
 console.log("=================================================================");
 
+
+
+
+
+
+
+ // const https = require('https');
+/*
+ let url = "http://localhost:11434/api/chat";
+
+ var data = {
+     "model": "qwen2:0.5b",
+     "messages": [
+         {
+             "role": "user",
+             "content": "Hello!"
+         }
+     ],
+     "stream": false
+ };
+ */
+/*
+data = {
+"model": "qwen2:0.5b",
+"prompt": "Why is the sky blue?",
+"stream": false
+}
+*/
+/*
+internet.post(url, data).then((rep)=> {
+  console.log(rep);
+});
+
+*/ 
+/*
+ const response = fetch('http://localhost:11434/api/chat', {
+  method: 'POST',
+  headers: {
+      'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(data),
+}).then((reponse)=> {
+  //console.log(rep);
+  //console.log(rep.text());
+  reponse.text().then((rep)=>{
+    let r = JSON.parse(rep);
+    let msg = r.message.content;
+    console.log(msg);
+  });
+});
+
+
+ console.log("test");
+*/
+
+
+
+//internet.ollama_generate("hello");
 
 // ============== Serveur en mode websocket =================
 if(config.anythingllm.is_server){

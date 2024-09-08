@@ -145,7 +145,8 @@ class VocalCommand {
         
         if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
             if(this.question !== ""){
-            this.ask();
+              //this.ask();
+              this.ask_ollama();
             }else{
                 speech("Pas de question", this.clientIPv4);
             }
@@ -236,11 +237,33 @@ class VocalCommand {
             }
         }
     }
+
+    ask_ollama(){
+      //this.self.currentMode = "";
+      //this.working_mode = "";
+      speech("Veuillez patienter. Je réfléchis à votre question. ", this.clientIPv4);
+      let base = this;
+
+      internet.ollama_ask(this.question).then((response)=> {
+        response.text().then((rep)=>{
+          let r = JSON.parse(rep);
+          let reponse = r.message.content;
+          console.log(reponse);
+          speakcommands.speech(reponse, config.config_speech_ip);    
+        });
+      });;
+
+      this.question = "";
+      this.old = [];
+    }
+
     ask(){
       this.self.currentMode = "";
       this.working_mode = "";
       speech("Veuillez patienter. Je réfléchis à votre question. ", this.clientIPv4);
       let base = this;
+
+      
       if(this.socket === undefined){
         console.log("Error: no event socket defined");
         return;
