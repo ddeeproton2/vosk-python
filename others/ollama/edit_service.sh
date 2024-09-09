@@ -1,0 +1,1 @@
+systemctl edit ollama.service
