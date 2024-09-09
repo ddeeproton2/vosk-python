@@ -142,7 +142,7 @@ class VocalCommand {
     }
     add(msg){
         let vc = this.self;
-        
+         
         if(["oui","ok","okay","envoyer"].indexOf(msg) !== -1){
             if(this.question !== ""){
               //this.ask();
@@ -318,7 +318,9 @@ class VocalCommand {
       this.self.currentMode = "";
       console.log("Lancement du code");
       speech("Veuillez patienter. Je réfléchis à votre question. ", this.clientIPv4);
-      ask_vscode(msg, internet.getLocalIpAddress()+':'+httpServer.address().port);
+      //ask_vscode(msg, internet.getLocalIpAddress()+':'+httpServer.address().port);
+      this.question = msg;
+      this.ask_ollama();
     }
     
   }
@@ -697,6 +699,18 @@ class MainSpeakCommands{
       }
       if(!this.isMicro){ console.log("[Micro OFF] "+msg); return; }
 
+      // =================== Editeur vscode
+      if(this.vc.currentMode == "editeur"){
+        this.editor.work(msg);
+        return;
+      }
+      if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg) || selected_number === 1){
+          this.editor.clientIPv4 = clientIPv4;
+          this.editor.nodeserver = config.nodeserver;
+          this.editor.start();
+          return;
+      }
+
       // ===================
 
       if(this.vc.typeSpeak === "alphabet" || this.vc.typeSpeak === "numeric"){
@@ -817,17 +831,7 @@ class MainSpeakCommands{
           this.learning_chars.start();
           return;
       }
-      // =================== Editeur vscode
-      if(this.vc.currentMode == "editeur"){
-          this.editor.work(msg);
-          return;
-      }
-      if(['éditeur',"l'éditeur"].indexOf(msg) !== -1 || this.vc.isCommand('editeur', msg) || selected_number === 1){
-          this.editor.clientIPv4 = clientIPv4;
-          this.editor.nodeserver = config.nodeserver;
-          this.editor.start();
-          return;
-      }
+
       // =================== Last commands (must be at the end)
       if(this.vc.isCommand('repeter', msg)){
           this.speech(startMessage, clientIPv4);

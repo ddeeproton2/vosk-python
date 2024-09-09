@@ -28,7 +28,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       speech("Vous lancez le mode editeur.", this.clientIPv4);
     } 
     work(msg){
-      let selected_number = this.editor.vs_interface.getVoiceToNumber(msg);
+      let selected_number = this.vs_interface.getVoiceToNumber(msg);
 
       let vc = this.self;
       let vs_interface = this.vs_interface;
@@ -310,6 +310,33 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       //=====================================================================================
       // Multi Modes
       //=====================================================================================
+
+      if(this.working_mode === ""){
+        if(vc.isCommand('question', msg)){
+          speech("J'écoute", this.clientIPv4);
+          this.working_mode = "question";
+          return;
+        }
+      }
+      if(this.working_mode === "question"){
+
+        if(vc.isCommand('annuler', msg)){
+          this.working_mode === "";
+          speech("Sortie du mode question dans éditeur.", this.clientIPv4);
+          return;
+        }
+        
+        internet.ollama_ask(msg).then((response)=> {
+          response.text().then((rep)=>{
+            let r = JSON.parse(rep);
+            let reponse = r.message.content;
+            console.log(reponse);
+            speech(reponse, config.config_speech_ip);    
+          });
+        });;
+      }
+
+
 
       if(this.working_mode === ""){
         if(vc.isCommand('learn', msg)){
