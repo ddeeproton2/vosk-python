@@ -23,6 +23,7 @@ function speech(msg, clientIP){
     } catch (error) {
       console.error('GET request error:', error);
       //throw error; // Re-throw the error for further handling if needed
+      
     }
   
 }

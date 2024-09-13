@@ -469,6 +469,7 @@ class VocalCommand {
       }
       if(this.learning_mode === "yes_or_no"){
         if(msg === 'oui' || vc.isCommand('oui', msg)){
+          
           this.learning_mode = "";
           speech("Enregistrement du mot, "+this.learning_record+", pour le chiffre "+this.current_number_to_learn, this.clientIPv4);
           vc.add(this.current_number_to_learn, this.learning_record);
@@ -596,6 +597,7 @@ class VocalCommand {
   }
   
   var spellalphabetic = new SpellAlphabetic(config.config_speech_ip, vc);
+
   */
   
 
@@ -624,7 +626,7 @@ class MainSpeakCommands{
               });
       
       
-              //console.log(data); // Output: Parsed data (JSON, text, etc.)
+              //console.log(data); // Output: Parsed data (JSON, text, etc.) 
             } catch (error) {
               console.error('Error fetching data:', error);
             }
@@ -658,7 +660,7 @@ class MainSpeakCommands{
           d.value = spell.charAt(i);
           d.word = char_to_word(spell.charAt(i));
 
-          // if next char is not a repetition
+          // if next char is not a repetition 
           if(!(i+1 < spell.length && spell.charAt(i) == spell.charAt(i+1))){
             letters.push({
               count:d.count,
@@ -670,7 +672,7 @@ class MainSpeakCommands{
             d.word = '';
           }
         }
-        let newmsg = msg_start+" ";
+        let newmsg = msg_start+" "; 
         for (let i in letters) {
           if(letters[i].count === 1){
             newmsg = newmsg.concat(letters[i].word + "... ");
@@ -696,6 +698,7 @@ class MainSpeakCommands{
         }else{
           this.speech("Le micro est désactivé", clientIPv4);
         }
+        return;
       }
       if(!this.isMicro){ console.log("[Micro OFF] "+msg); return; }
 

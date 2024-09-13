@@ -1,7 +1,4 @@
 
-// Todo
-// Quand on sélectionne un mot, qu'on puisse l'entrainer vocalement
-
 const {speech, char_to_word, char_to_keyword} = require('./speech.js');
 const config = require('../config.js');
 const internet = require('./connexions.js');
@@ -12,7 +9,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
   //var learning_chars = new LearnChars(config.config_speech_ip, vc);
   // ====================================
   // ====================================
-  
+   
   class Editor{
     constructor(clientIPv4, nodeserver, self){
       this.vs_interface = new VSInterface(config.config_speech_ip, config.nodeserver, self);
@@ -24,22 +21,24 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       this.old = [];
     }
     start(){
-      this.self.currentMode = "editeur";
-      speech("Vous lancez le mode editeur.", this.clientIPv4);
+      this.self.currentMode = "editeur"; 
+      speech("Vous lancez le mode editeur.", this.clientIPv4); 
+
     } 
     work(msg){
-      let selected_number = this.vs_interface.getVoiceToNumber(msg);
+      let selected_number = this.vs_interface.getVoiceToNumber(msg); 
 
       let vc = this.self;
       let vs_interface = this.vs_interface;
       //=====================================================================================
-      // General Commands 
+      // General Commands
       //=====================================================================================
 
-      // Pour réindenter
+      // Pour réindenter 
       //vscode.commands.executeCommand(‘editor.action.formatDocument’);
+
       ///
-      // Ligne (dire numéro de ligne)
+      // Ligne (dire numéro de ligne)  
       if(vc.isCommand('aide', msg)){
         var msg = `
         micro,
@@ -89,7 +88,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       }
 
       // Sortir
-      if(['annuler'].indexOf(msg) !== -1 || vc.isCommand('annuler', msg)){
+      if(vc.isCommand('annuler', msg)){
         this.self.currentMode = "";
         speech("Sortie du mode editeur.", this.clientIPv4);
         return;
@@ -99,6 +98,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       if(this.working_mode === ""){
 
         // Ligne (dire numéro de ligne)
+
         if(vc.isCommand('ligne', msg)){
           vs_interface.vscode_execute_code(`
             let currentLine = cmd.currentLine();
@@ -149,29 +149,29 @@ const VSInterface = require('./visualstudio/vsinterface.js');
         }
         */
 
-        if(['lignes suivantes'].indexOf(msg) !== -1 || vc.isCommand('lignes_suivantes', msg)){
+        if(vc.isCommand('lignes_suivantes', msg)){
           speech("Passe à la ligne suivante", this.clientIPv4);
           vs_interface.vscode_nextline(this.nodeserver);
           return;
         }
 
-        if(['ligne précédente'].indexOf(msg) !== -1 || vc.isCommand('lignes_precedantes', msg)){
+        if(vc.isCommand('lignes_precedantes', msg)){
           speech("Passe à la ligne précédente", this.clientIPv4);
           vs_interface.vscode_prevline(this.nodeserver);
           return;
         }
 
-        if(msg === 'nouvelle ligne' || vc.isCommand('nouvelle_ligne', msg)){
+        if(vc.isCommand('nouvelle_ligne', msg)){
           vs_interface.vscode_addnewline(this.nodeserver);
           return;
         }
 
-        if(msg === 'effacer avant' || vc.isCommand('effacer_avant', msg)){
+        if(vc.isCommand('effacer_avant', msg)){
           vs_interface.vscode_deletebefore(this.nodeserver);
           return;
         }
 
-        if(msg === 'effacer après' || vc.isCommand('effacer_apres', msg)){
+        if(vc.isCommand('effacer_apres', msg)){
           vs_interface.vscode_deleteafter(this.nodeserver);
           return;
         }
@@ -184,12 +184,12 @@ const VSInterface = require('./visualstudio/vsinterface.js');
           return;
         }
 
-        if(['suivant','après','avancer','prochain','flèche droite'].indexOf(msg) !== -1 || vc.isCommand('suivant', msg)){
+        if(vc.isCommand('suivant', msg)){
           vs_interface.vscode_cursorMoveToNextChar(this.nodeserver);
           return;
         }
 
-        if(['précédent','avant','reviens','reculez','fléche gauche'].indexOf(msg) !== -1 || vc.isCommand('precedent', msg)){
+        if(vc.isCommand('precedent', msg)){
           vs_interface.vscode_cursorMoveToPreviousChar(this.nodeserver);
           return;
         }
@@ -325,7 +325,8 @@ const VSInterface = require('./visualstudio/vsinterface.js');
           speech("Sortie du mode question dans éditeur.", this.clientIPv4);
           return;
         }
-        
+        speech("je reflechis", this.clientIPv4);
+          
         internet.ollama_ask(msg).then((response)=> {
           response.text().then((rep)=>{
             let r = JSON.parse(rep);
@@ -387,7 +388,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
         return;
       }
       if(this.working_mode === "new_command_confirm_learning"){
-        if(vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){ 
           this.working_mode === "";
           speech("Sortie de l'apprentissage du mot "+this.persistent_data.selected, this.clientIPv4);
           return;
@@ -413,9 +414,9 @@ const VSInterface = require('./visualstudio/vsinterface.js');
 
       // ================================================================
       
-      // Lire
+      // Lire 
       if(this.working_mode === ""){
-        if(['lire'].indexOf(msg) !== -1 || vc.isCommand('lire', msg)){
+        if(vc.isCommand('lire', msg)){
           this.working_mode = "continue_to_read";
           vs_interface.vscode_read(this.nodeserver);
           return;
@@ -441,7 +442,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
 
       //===============
       if(this.working_mode === ""){
-        if(msg === 'écrire chiffres' || vc.isCommand('ecrire_chiffre', msg)){
+        if(vc.isCommand('ecrire_chiffre', msg)){
             speech("Epelez votre chiffre", this.clientIPv4);
             this.working_mode = "spell_number";
             return;
@@ -449,7 +450,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       }
 
       if(this.working_mode === "spell_number"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){
             this.working_mode = "";
             speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
             return;
@@ -463,7 +464,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       
       //===============
       if(this.working_mode === ""){
-        if(msg === 'écrire lettre' || vc.isCommand('ecrire_lettre', msg)){
+        if(vc.isCommand('ecrire_lettre', msg)){
             speech("Epelez votre lettre", this.clientIPv4);
             this.working_mode = "spell_char";
             return;
@@ -471,8 +472,8 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       }
 
       if(this.working_mode === "spell_char"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
-          this.working_mode = "";
+        if(vc.isCommand('annuler', msg)){
+          this.working_mode = ""; 
           speech("Sortie du mode Epelez votre lettre.", this.clientIPv4);
           return;
         }
@@ -493,12 +494,12 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       }
 
       if(this.working_mode === "spell_number_menu"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){
           this.working_mode = "";
           speech("Sortie du mode Epelez votre chiffre.", this.clientIPv4);
           return;
         }
-        if(msg === 'ok' || vc.isCommand('ok', msg)){
+        if(vc.isCommand('ok', msg)){
           this.working_mode = "";
           if(dir.exists(this.files[this.final_number])){
             console.log("Ouverture du dossier. "+this.filesnames[this.final_number]);
@@ -522,20 +523,20 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       //===============
 
       if(this.working_mode === "spell_number_find"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){
             this.working_mode = "";
             speech("Sortie du mode chercher un chiffre.", this.clientIPv4);
             return;
         }
-        if(msg === 'chiffre' || vc.isCommand('chiffre', msg)){
+        if(vc.isCommand('chiffre', msg)){
           this.working_mode = "spell_number_find";
           speech("Chercher mode chiffre", this.clientIPv4);
         }
-        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+        if(vc.isCommand('lettre', msg)){
           this.working_mode = "spell_char_find";
           speech("Chercher mode lettres", this.clientIPv4);
         }
-        if(["non"].indexOf(msg) !== -1){
+        if(vc.isCommand('non', msg)){
           if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
               speech("Annulation du mot "+this.final_find_search+". Vous n'avez plus rien en mémoire", this.clientIPv4);
               this.final_find_search = "";
@@ -546,7 +547,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
           }
           return;
         }
-        if(msg === 'ok' || vc.isCommand('ok', msg)){
+        if(vc.isCommand('ok', msg)){
           this.working_mode = "";
           let msg_protected = this.final_find_search.replaceAll("'", "\'");
           vs_interface.vscode_execute_code(`
@@ -570,22 +571,22 @@ const VSInterface = require('./visualstudio/vsinterface.js');
       
       //===============
       if(this.working_mode === "spell_char_find"){
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){
           this.working_mode = "";
           speech("Sortie du mode chercher une lettre.", this.clientIPv4);
           return;
         }
-        if(msg === 'chiffre' || vc.isCommand('chiffre', msg)){
+        if(vc.isCommand('chiffre', msg)){
           this.working_mode = "spell_number_find";
           speech("Chercher mode chiffre", this.clientIPv4);
           return;
         }
-        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+        if(vc.isCommand('lettre', msg)){
           this.working_mode = "spell_char_find";
           speech("Chercher mode lettres", this.clientIPv4);
           return;
         }
-        if(["non"].indexOf(msg) !== -1){
+        if(vc.isCommand('non', msg)){
           if(this.old.length == 0 || this.old[this.old.length - 1] === ""){
               speech("Annulation du mot "+this.final_find_search+". Vous n'avez plus rien en mémoire", this.clientIPv4);
               this.final_find_search = "";
@@ -596,7 +597,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
           }
           return;
         }
-        if(msg === 'ok' || vc.isCommand('ok', msg)){
+        if(vc.isCommand('ok', msg)){
           this.working_mode = "";
           let msg_protected = this.final_find_search.replaceAll("'", "\'");
           vs_interface.vscode_execute_code(`
@@ -649,15 +650,15 @@ const VSInterface = require('./visualstudio/vsinterface.js');
 
       if(this.working_mode === "find_menu"){
         this.final_find_search = ""; 
-        if(msg === 'chiffres' || vc.isCommand('chiffre', msg)){
+        if(vc.isCommand('chiffre', msg)){
           this.working_mode = "spell_number_find";
           speech("Chercher mode chiffre", this.clientIPv4);
         }
-        if(msg === 'lettre' || vc.isCommand('lettre', msg)){
+        if(vc.isCommand('lettre', msg)){
           this.working_mode = "spell_char_find";
           speech("Chercher mode lettres", this.clientIPv4);
         }
-        if(msg === 'annuler' || vc.isCommand('annuler', msg)){
+        if(vc.isCommand('annuler', msg)){
           this.working_mode = "";
           speech("Sortie du mode chercher un mot.", this.clientIPv4);
           return;
@@ -668,6 +669,7 @@ const VSInterface = require('./visualstudio/vsinterface.js');
     }
   }
   //var editor = new Editor(config.config_speech_ip, config.nodeserver, vc);
+
 
 
 // Export variable

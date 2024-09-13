@@ -263,7 +263,8 @@ app.get('/speak', (req, res) => {
     //console.log(req);
     const msg = req.query.msg;
     const segments = req.ip.split(':');
-    const clientIPv4 = segments.slice(-1);
+    //const clientIPv4 = segments.slice(-1);
+    const clientIPv4 = config.config_speech_ip;
     console.log('From '+clientIPv4+' : '+msg);
     ioHttp.emit('emitall', "voice", "all", "voice_order", "speech", msg);
     ioHttps.emit('emitall', "voice", "all", "voice_order", "speech", msg);
