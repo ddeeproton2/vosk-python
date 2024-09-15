@@ -8,6 +8,11 @@ or try my website
 
 http://ddeeproton.infinityfreeapp.com
 
+My GAB social network
+
+https://gab.com/ddeeproton
+____________________________
+
 # vosk-python
  Offline speech recognition in Python for Windows
 
